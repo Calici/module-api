@@ -1,4 +1,4 @@
-from .component import ComponentWithTable, AllAllowedComponent
+from .component import ComponentWithTable as AllAllowedComponent, ComponentWithTable
 from .display import Display
 
 import unittest
