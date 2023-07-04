@@ -49,7 +49,8 @@ class LockIO(LockSection):
         # Build dictionary
         build_dict  = self.serialize_changes()
         # Block update if empty
-        if build_dict == {}: return
+        if build_dict == {}:
+            return 
         conf        = self._file_values(self.file_path)
         conf        = recursive_merge(build_dict, conf)
         self._thread_lock.acquire()

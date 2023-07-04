@@ -1,10 +1,7 @@
 import requests
 from .utils import get_backend_endpoint, get_jwt
-
-
-class LigandModuleUpdateError(Exception):
-    def __init__(self, obj: requests.Response):
-        self.obj = obj
+from .utils.decorator import api_to_django_execute
+from API.backend.constants import API_SENDING_TIMEOUT
 
 
 class LigandAIDockModuleBase:
@@ -15,20 +12,18 @@ class LigandAIDockModuleBase:
         self.headers = {'Authorization': f'Token {bio_jwt}'}
         self.module_id = module_id
 
-    def select(self, count:int, library:int, category:int):
-        post_req = requests.post(
+    @api_to_django_execute
+    def select(self, count: int, library: int, category: int):
+        return requests.post(
             url=self.endpoint,
             data={
-                'count' : count,
-                'library' : library,
-                'category' : category,
+                'count': count,
+                'library': library,
+                'category': category,
             },
-            headers=self.headers
+            headers=self.headers,
+            timeout=API_SENDING_TIMEOUT,
         )
-        if post_req.status_code == 200:
-            return post_req
-        else:
-            raise LigandModuleUpdateError(post_req.text)
 
 class LigandAIDockModule:
     def __init__(self, module_id: int):

@@ -1,10 +1,12 @@
 import requests
+import logging
+from time import sleep
+
+# Local import
 from .utils import get_backend_endpoint, get_jwt
-
-
-class TokenModuleUpdateError(Exception):
-    def __init__(self, obj: requests.Response):
-        self.obj = obj
+from .utils.decorator import api_to_django_execute
+from API.backend.exception import NoRetryError, RetryError
+from API.backend.constants import WAITING_FOR_ERROR_API_SENDING, SEND_API_RETRY_COUNT_WHEN_STOP, API_SENDING_TIMEOUT
 
 
 class TokenModuleBase:
@@ -15,35 +17,44 @@ class TokenModuleBase:
         self.headers = {'Authorization': f'Token {bio_jwt}'}
         self.module_id = module_id
 
-    def use(self, amount: int):
-        post_req = requests.post(
+    @api_to_django_execute
+    def use(self, amount: int, timeout : int = API_SENDING_TIMEOUT):
+        return requests.post(
             url=self.endpoint,
             data={
                 'update_type': 'use',
                 'used': amount
             },
-            headers=self.headers
+            headers=self.headers,
+            timeout=timeout,
         )
-        if post_req.status_code == 200:
-            return post_req
-        else:
-            raise TokenModuleUpdateError(post_req.text)
 
-    def set(self, amount: int):
-        post_req = requests.post(
+    @api_to_django_execute
+    def set(self, amount: int, timeout : int = API_SENDING_TIMEOUT):
+        return requests.post(
             url=self.endpoint,
             data={
                 'update_type': 'set',
                 'used': amount
             },
-            headers=self.headers
+            headers=self.headers,
+            timeout=timeout,
         )
-        if post_req.status_code == 200:
-            return post_req
-        else:
-            raise TokenModuleUpdateError(post_req.text)
 
+    @api_to_django_execute
+    def use_by_percent(self, percent: int, timeout : int = API_SENDING_TIMEOUT):
+        return requests.post(
+            url=self.endpoint,
+            data={
+                'update_type': 'use_by_percent',
+                'used': percent
+            },
+            headers=self.headers,
+            timeout=timeout,
+        )
 
+    def use_all_tokens(self):
+        self.use_by_percent(100, timeout=10)
 
 class TokenModule:
     def __init__(self, module_id: int):
@@ -53,3 +64,19 @@ class TokenModule:
 
     def token(self) -> TokenModuleBase:
         return self._token
+
+    def send_use_all(self, retry_count: int = SEND_API_RETRY_COUNT_WHEN_STOP):  # 120*5 = 10 minutes
+        while retry_count > 0:
+            try:
+                self.token().use_all_tokens()
+                retry_count = 0
+                return True
+            except RetryError as ex:
+                logging.error(f'Token - {ex}')
+                if retry_count > 0:
+                    retry_count -= 1
+                    sleep(WAITING_FOR_ERROR_API_SENDING)    # sleep 5 seconds
+            except Exception as ex:
+                retry_count = 0
+                logging.error(f'Token - {ex}')
+        return False

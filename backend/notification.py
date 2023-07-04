@@ -1,12 +1,7 @@
 import requests
 from .utils import get_backend_endpoint, get_jwt
-
-class NotificationError(Exception):
-    def __init__(self, obj : requests.Response):
-        self.obj    = obj
-class NotificationCreateError(NotificationError): pass
-class NotificationUpdateError(NotificationError): pass
-class NotificationDeleteError(NotificationError): pass
+from .utils.decorator import api_to_django_execute
+from API.backend.constants import API_SENDING_TIMEOUT
 
 class NotificationBase:
     COMPLETE    = 'COMPLETE'
@@ -17,37 +12,22 @@ class NotificationBase:
         self.backend_url    = backend_endpoint
         self.bio_jwt        = bio_jwt
         self.module_id      = module_id
+    
+    @api_to_django_execute
     def create(
-        self, title : str, content : str, type : str = GENERAL
+        self, title : str, content : str, type : str = GENERAL, timeout : int = API_SENDING_TIMEOUT
     ) -> requests.Response:
         data    = {
             'title' : title, 'content' : content, 'module' : self.module_id,
             'type' : type
         }
-        post_req    = requests.post(
+        return requests.post(
             url = f'{self.backend_url}bio/notification/',
             data = data,
-            headers = {'Authorization' : f'Token {self.bio_jwt}'}
+            headers = {'Authorization' : f'Token {self.bio_jwt}'},
+            timeout=timeout,
         )
-        if post_req.status_code == 200:
-            return post_req
-        else: 
-            raise NotificationCreateError(post_req)
-    def update(self, notification_id : int, **kwargs) -> requests.Response:
-        post_req    = requests.post(
-            url = f'{self.backend_url}bio/notification/{notification_id}',
-            data = kwargs,
-            headers = {'Authorization' : f'Token {self.bio_jwt}'}
-        )
-        if post_req.status_code == 200: return post_req
-        else: raise NotificationUpdateError(post_req)
-    def delete(self, notification_id : int) -> requests.Response:
-        post_req    = requests.delete(
-            url = f'{self.backend_url}bio/notification/{notification_id}',
-            headers = {'Authorization' : f'Token {self.bio_jwt}'}
-        )
-        if post_req.status_code == 200: return post_req
-        else: raise NotificationDeleteError(post_req)
+            
 
 class Notification:
     NOTIFICATION_ENDPOINT   = 'notification/all/'

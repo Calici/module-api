@@ -2,6 +2,7 @@
 import pathlib
 import json
 from typing import IO
+import logging
 
 # API Import
 import API.lock as lock
@@ -42,7 +43,7 @@ class BaseDisplay(lock.LockIO):
         fname           = self.change_path.stem
         counter         = 0
         change_path     = self.change_path
-        while self.change_path.exists():
+        while change_path.exists():
             change_path     = self.change_path.parent / f'{fname}_{counter}.json'
             counter += 1
         with open(change_path, 'w') as f:
@@ -59,8 +60,9 @@ class BaseDisplay(lock.LockIO):
             self._thread_lock.acquire()
             self.save_changes_file(build_dict)
             self._thread_lock.release()
+        else:
         # Write all into a file
-        super()._save_file()
+            super()._save_file()
 
 class Display(BaseDisplay):
     def __init__(self,
@@ -72,7 +74,6 @@ class Display(BaseDisplay):
         assert isinstance(component, BaseComponent)
 
         self.component  = component
-
         super().__init__(lock, dtype = dtype)
         self.set(dtype = dtype)
 

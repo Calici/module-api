@@ -2,11 +2,16 @@ import requests
 import json
 import pathlib
 from typing import List, Union
-
+from common.constants import WsgiErrorCode
 class HttpException(Exception):
     def __init__(self, status : int, msg : Union[dict, str]):
         self.status     = status
-        self.msg        = msg
+        self.error_code = None
+        if isinstance(msg, dict):
+            self.msg = msg.get('error', '')
+            self.error_code = msg.get('error_code', None)
+        else:
+            self.msg = msg
 
     def __repr__(self) -> str:
         code    = self.status
@@ -78,11 +83,21 @@ class Server:
         return Server._err_handler(response)
 
     @staticmethod
-    def _send_request(endpoint : str, json : dict) -> requests.Response:
+    def _send_request(endpoint : str, json_ : dict) -> requests.Response:
         """
             Sends a request to the given endpoint and payload json
         """
-        return requests.post(endpoint, json = json)
+        try:
+            return requests.post(endpoint, json = json_)
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, requests.exceptions.TooManyRedirects ) as ex :
+            resp = requests.Response()
+            resp.status_code = 500
+            resp.headers = {'Content-type' : 'application/json'},
+            resp._content = str.encode(json.dumps({'error' : "Server is not ready", 'error_code' : WsgiErrorCode.NETWORK_ERROR}))
+            return resp
+        
+
+
     @staticmethod
     def _err_handler(resp : requests.Response) -> requests.Response:
         """
@@ -91,16 +106,16 @@ class Server:
         if resp.status_code == 200: return resp
         elif resp.status_code == 400:
             try:
-                raise Http400(resp.json()['error'])
+                raise Http400(resp.json())
             except json.JSONDecodeError:
                 raise Http400(resp.text)
         elif resp.status_code == 500:
             try:
-                raise Http500(resp.json()['error'])
+                raise Http500(resp.json())
             except json.JSONDecodeError:
                 raise Http500(resp.text)
         else:
             try:
-                raise HttpException(resp.status_code, resp.json()['error'])
+                raise HttpException(resp.status_code, resp.json())
             except json.JSONDecodeError:
                 raise HttpException(resp.status_code, resp.text)
