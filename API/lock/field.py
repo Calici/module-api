@@ -58,7 +58,7 @@ class LockFieldBase(Generic[T]):
     
 V = TypeVar("V")
 class LockField(LockFieldBase[V]):
-    def __init__(self, type : Type[V], default : Any = None):
+    def __init__(self, type : Type[V], default : Union[V, Any] = None):
         """
             Creates a LockField with type type and default value default. 
             Calls the empty constructor if default is not given.
