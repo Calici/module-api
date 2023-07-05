@@ -147,7 +147,7 @@ class ListField(LockField[list]):
         value   = self.validate(value)
         for i in range(len(value)):
             Field       = copy.deepcopy(self._child_type)
-            Field._set_value(value[i])
+            Field._set_value(value[i])  
             value[i]    = Field.serialize()
         self._value     = value
         self._changed   = change

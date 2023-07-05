@@ -5,6 +5,7 @@ from .field import ListField, LockField
 from .section import LockSection
 from .file import LockIO
 from .calici import LockHeader, LockStatus
+from API.lock.fields.list import ListField as ListFields, TupleField, Lock, Generic
 
 class TestField(unittest.TestCase):
     def test_initialize(self):
@@ -222,3 +223,25 @@ class TestFile(unittest.TestCase):
         self.assertEqual(lock_2.status.status, 'INIT')
         self.assertEqual(lock_2.status.is_connected, True)
 
+class ListLockField(unittest.TestCase):
+    def test_append(self):
+        truth = ["nur", "sul", "tan"]
+        field = ListFields(Lock.LockField(str), truth)
+        field.append("bek")
+        self.assertEqual(field._buffer.__len__(), 1)
+        self.assertEqual(field._buffer[0]["type"], "append")
+        self.assertEqual(field._buffer[0]["elm"],"bek")
+
+        self.assertEqual(len(truth), 4)
+        self.assertEqual(truth[3], "bek")
+
+    def test_reoder(self):
+        old_order = [1, 5, 3, 6]
+        new_reordered = [3, 2, 0, 1]
+        field = ListFields(Lock.LockField(int), old_order)
+        field.reorder(new_reordered)
+        self.assertEqual(field._buffer[1]["type"], "reorder")
+        
+
+        
+        

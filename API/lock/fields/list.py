@@ -14,20 +14,19 @@ class ListField(Lock.LockField[List[T]], Generic[T]):
         child : Lock.LockField[T],
         default : Union[List[T], None] = None,
         maxLength : int = 0,
-        force : bool = False
+       force : bool = False
     ):
       try:
            assert isinstance(child, Lock.LockField)
       except AssertionError:
-        raise AssertionError(f'children have to be of type {Lock.LockField}')
+        raise AssertionError(f'child has to be of type {Lock.LockField}')
       self._child = child
 
       if maxLength < 0:
-           raise AssertionError(f'Max Length have to a positive number')
+           raise AssertionError(f'Max Length has to be a positive number')
       self._maxLength = maxLength
       self._child_type = copy.deepcopy(child)
       super().__init__(List[T], default)
-
 
 
     def validate(self, value : List[T]) -> List[T]:
@@ -69,19 +68,18 @@ class ListField(Lock.LockField[List[T]], Generic[T]):
             "type" : "append", elm : elm
         })
 
-    def reorder(self, newOrder : List[int]):
 
-        def reorder_array_by_index(arr, index_arr):
+    def reorder_array_by_index(self, arr : List[int]):
             reordered_arr = []
-            for index in index_arr:
-                if 0 <= index < len(arr):
-                    reordered_arr.append(arr[index])
+            for index in arr:
+                if 0 <= index < len(self._value):
+                    reordered_arr.append(self._value[index])
             return reordered_arr
 
-        reorder_array_by_index(self._value, newOrder)
-
+    def reorder(self, newOrder : List[int]):
+        reorder_array_by_index(self, newOrder: List[int]) # type: ignore
         self._buffer.append({
-            "type":"reorder", List[int]:newOrder
+            "type":"reorder", newOrder:newOrder # type: ignore
         })
     def modify(self, pos : int, elm : T):
         self._value[pos] = elm
@@ -89,14 +87,14 @@ class ListField(Lock.LockField[List[T]], Generic[T]):
             "type":"modify", pos:pos, elm:elm
         })
     def remove(self, pos : int):
-        self._value.remove(self._value[pos])
+        del self._value[pos]
         self._buffer.append({
             "type":"remove", pos:pos
         })
     def empty(self):
         self._value = []
         self._buffer.append({
-            "type":"remove"
+            "type":"empty"
         })
     def flush(self):
         self._buffer = []
@@ -118,11 +116,11 @@ class TupleField(Lock.LockField[Tuple[K]], Generic[K]):
      try:
          assert isinstance(children, Lock.LockField)
      except AssertionError:
-            raise AssertionError(f'child have to be of type {Lock.LockField}')
+            raise AssertionError(f'child has to be of type {Lock.LockField}')
      self._children  = children
          
      if length < 0:
-        raise AssertionError(f'Max Length have to be a positive number')
+        raise AssertionError(f'Max Length has to be a positive number')
      self._length = length
      self._children = copy.deepcopy(children)
      super().__init__(Tuple[K], default)
@@ -135,9 +133,11 @@ class TupleField(Lock.LockField[Tuple[K]], Generic[K]):
             value[i] = self._children.validate(val)
         return value
     
-    def _assertLength(self,value : List[K]) -> List[K]:
-        raise NotImplementedError
-    
+    def _assertLength(self, value : List[K]) -> List[K]:
+        if len(value) != self._length:
+            raise AssertionError(f'Length of array should be fixed')
+        else:
+            return value
 
     def _set_value(self, value : List[K], change : bool = True):
         value = self.validate(value)
@@ -145,8 +145,8 @@ class TupleField(Lock.LockField[Tuple[K]], Generic[K]):
             Field = copy.deepcopy(self._children) # type: ignore
             Field._set_value(value[i])
             value[i] = Field.serialize()  # type: ignore
-        self._value     = value
-        self._changed   = change
+        self._value = value
+        self._changed = change
     
     def serialize(self) -> JSONSerializable:
         build_list = []
