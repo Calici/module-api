@@ -2,7 +2,7 @@ import API.lock as lock
 import datetime
 
 # Local Imports
-from .components import MutableTable, ProgressObjectField
+from .components import MutableTable
 
 
 class ProgressField(lock.LockSection):
@@ -39,8 +39,5 @@ class BaseComponent(lock.LockSection):
         super().__init__()
         self.set(**kwargs)
 
-class ComponentWithTable(BaseComponent):
-    table       = MutableTable()
 
-class SimpleComponent(BaseComponent):
-    pass
+
