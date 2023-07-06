@@ -67,8 +67,6 @@ class ListField(Lock.LockField[List[T]], Generic[T]):
         self._buffer.append({
             "type" : "append", elm : elm
         })
-
-
     def reorder_array_by_index(self, arr : List[int]):
             reordered_arr = []
             for index in arr:
