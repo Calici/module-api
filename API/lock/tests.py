@@ -231,7 +231,6 @@ class ListLockField(unittest.TestCase):
         self.assertEqual(field._buffer.__len__(), 1)
         self.assertEqual(field._buffer[0]["type"], "append")
         self.assertEqual(field._buffer[0]["elm"],"bek")
-
         self.assertEqual(len(truth), 4)
         self.assertEqual(truth[3], "bek")
 
@@ -240,8 +239,64 @@ class ListLockField(unittest.TestCase):
         new_reordered = [3, 2, 0, 1]
         field = ListFields(Lock.LockField(int), old_order)
         field.reorder(new_reordered)
+        self.assertEqual(field._buffer.__len__(), 2)
         self.assertEqual(field._buffer[1]["type"], "reorder")
+        self.assertEqual(field._buffer[1]["newOrder"], [3, 2, 0, 1])
+        self.assertEqual(field, [6, 3, 1, 5])
+
+    def test_modify(self):
+        nums = [1, 4, 5, 6, 3]
+        inx = 3
+        new_elem = 10
+        field = ListFields(Lock.LockField(int), nums)
+        field.modify(inx, new_elem)
+        self.assertEqual(field._buffer.__len__(), 3)
+        self.assertEqual(field._buffer[2]["type"], "modify")
+        self.assertEqual(field._buffer[2]["inx"], 3)
+        self.assertEqual(field._buffer[2]["elm"], 10)
+        self.assertEqual(len(nums), 5)
+    
+    def test_remove(self):
+        truth = ["nur", "sul", "tan"]
+        inx = 1
+        field = ListFields(Lock.LockField(str), truth)
+        field.remove(1)
+        self.assertEqual(field._buffer.__len__(), 4)
+        self.assertEqual(field._buffer[3]["type"], "remove")
+        self.assertEqual(field._buffer[3]["inx"], inx)
+        self.assertEqual(len(truth), 2)
+
+    def test_empty(self):
+        truth = ["nur", "sul", "tan"]
+        field = ListFields(Lock.LockField(str), truth)
+        field.empty()
+        self.assertEqual(field._buffer.__len__(), 5)
+        self.assertEqual(field._buffer[4]["type"], ["empty"])
+        self.assertEqual(len(truth), 0)
+
+    def test_flush(self):
+        truth = ["nur", "sul", "tan"]
+        field = ListFields(Lock.LockField(str), truth)
+        field.flush()
+        self.assertEqual(field._buffer.__len__(), 0)
         
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         
         
