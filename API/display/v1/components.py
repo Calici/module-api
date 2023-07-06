@@ -2,7 +2,7 @@
 import API.lock as lock
 
 # Library Imports
-from typing import Any, List, Union, Dict
+from typing import Any, List, Union, Dict, Callable
 
 # A base type for table types
 class QueryI(lock.LockSection):
@@ -96,14 +96,10 @@ class MutableTable(lock.LockSection):
         self.mark_changed()
         self._fields['rows'].mark_changed()
 
-    def sort_Row(self, column_index, reverse=False, compare_function=None):
-        if compare_function:
-            self.rows.sort(
-                key=lambda row: compare_function(row.row[column_index]), 
-                reverse=reverse
-            )
-        else:
-            self.rows.sort(
-                key=lambda row: row.row[column_index], 
-                reverse=reverse
-            )
+    def sort_Row(self, column_index: int, 
+                 reverse: bool = False, 
+                compare_function: Callable = lambda x: x) -> None:
+        self.rows.sort(key=lambda 
+                       row: compare_function(row.row[column_index]), 
+                       reverse=reverse)
+
