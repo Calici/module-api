@@ -5,7 +5,8 @@ from .field import ListField, LockField
 from .section import LockSection
 from .file import LockIO
 from .calici import LockHeader, LockStatus
-from API.lock.fields.list import ListField as ListFields, TupleField, Lock, Generic
+from API.lock.fields.list import ListField as ListFields, Lock, Generic
+from API.lock.fields.list import TupleField as TupleFields
 
 class TestField(unittest.TestCase):
     def test_initialize(self):
@@ -234,55 +235,77 @@ class ListLockField(unittest.TestCase):
         self.assertEqual(len(truth), 4)
         self.assertEqual(truth[3], "bek")
 
-    def test_reoder(self):
-        old_order = [1, 5, 3, 6]
-        new_reordered = [3, 2, 0, 1]
-        field = ListFields(Lock.LockField(int), old_order)
-        field.reorder(new_reordered)
-        self.assertEqual(field._buffer.__len__(), 2)
-        self.assertEqual(field._buffer[1]["type"], "reorder")
-        self.assertEqual(field._buffer[1]["newOrder"], [3, 2, 0, 1])
-        self.assertEqual(field, [6, 3, 1, 5])
+    def test_reorder(self):
+        field = ListFields(Lock.LockField(int))
+        field._value = [1, 2, 3, 4, 5]
+        field.reorder([4, 2, 0, 3, 1])
+        self.assertEqual(field._buffer[0]["type"], "reorder")
+        self.assertEqual(field._buffer[0]["newOrder"], [4, 2, 0, 3, 1])
+        self.assertEqual(len(field._value), 5)
+        self.assertEqual(field._value, [5, 3, 1, 4, 2])
 
     def test_modify(self):
-        nums = [1, 4, 5, 6, 3]
-        inx = 3
-        new_elem = 10
-        field = ListFields(Lock.LockField(int), nums)
-        field.modify(inx, new_elem)
-        self.assertEqual(field._buffer.__len__(), 3)
-        self.assertEqual(field._buffer[2]["type"], "modify")
-        self.assertEqual(field._buffer[2]["inx"], 3)
-        self.assertEqual(field._buffer[2]["elm"], 10)
-        self.assertEqual(len(nums), 5)
+        field = ListFields(Lock.LockField(float))
+        field._value = [1.1, 2.2, 3.3, 4.4]
+        field.modify(1, 5.5)
+        self.assertEqual(field._buffer[0]["type"], "modify")
+        self.assertEqual(field._buffer[0]["pos"], 1)
+        self.assertEqual(field._buffer[0]["elm"], 5.5)
+        self.assertEqual(len(field._value), 4)
+        self.assertEqual(field._value, [1.1, 5.5, 3.3, 4.4])
+
     
     def test_remove(self):
-        truth = ["nur", "sul", "tan"]
-        inx = 1
-        field = ListFields(Lock.LockField(str), truth)
+        field = ListFields(Lock.LockField(str))
+        field._value = ["KYR", "GYZS", "TAN"]
         field.remove(1)
-        self.assertEqual(field._buffer.__len__(), 4)
-        self.assertEqual(field._buffer[3]["type"], "remove")
-        self.assertEqual(field._buffer[3]["inx"], inx)
-        self.assertEqual(len(truth), 2)
+        self.assertEqual(field._buffer[0]["type"], "remove")
+        self.assertEqual(field._buffer[0]["pos"], 1)
+        self.assertEqual(len(field._value), 2)
+        self.assertEqual(field._value, ["KYR", "TAN"])
 
     def test_empty(self):
-        truth = ["nur", "sul", "tan"]
-        field = ListFields(Lock.LockField(str), truth)
+        field = ListFields(Lock.LockField(bool))
+        field._value = [True, False, True]
         field.empty()
-        self.assertEqual(field._buffer.__len__(), 5)
-        self.assertEqual(field._buffer[4]["type"], ["empty"])
-        self.assertEqual(len(truth), 0)
+        self.assertEqual(field._buffer[0]["type"], "empty")
+        self.assertEqual(len(field._value), 0)
 
     def test_flush(self):
-        truth = ["nur", "sul", "tan"]
-        field = ListFields(Lock.LockField(str), truth)
+        field = ListFields(Lock.LockField(int))
+        field._buffer =  [{"type": "append", "elm": 1}, {"type": "remove", "pos": 0}]
         field.flush()
-        self.assertEqual(field._buffer.__len__(), 0)
+        self.assertEqual(field._buffer, [])
+
+    if __name__ == '__main__':
+        unittest.main()
+
+class TupleField(unittest.TestCase):
+    def test_modify(self):
+        field = TupleFields([Lock.LockField(str), Lock.LockField(int)], length=2)
+        field.set(("Nurs", 2003))
+        field.modify(0, "KGZ")
+        self.assertEqual(field.get(), ("KGZ", 2003))
+        self.assertEqual(field.changed(), True)
+
+
+    def test_flush(self):
+        field = TupleFields([Lock.LockField(str), Lock.LockField(int)], length=2)
+        field.set(('abc', 123))
+        field.modify(0, 'def')
+        field.flush()
+        self.assertEqual(field.changed(), False)
+    
+    def test_something(self):
+        class TestSection(LockSection):
+            a = LockField(str, default = "a")
         
-
-
-
+        field = TupleFields([TestSection()], length=1)
+        # Assert the modified value
+        field.modify(0, {"a" : "IRT"})
+        self.assertEqual(field._value, ({"a": "IRT"},))
+        # Assert the changed status
+        self.assertEqual(field.changed(), False)
 
 
 
