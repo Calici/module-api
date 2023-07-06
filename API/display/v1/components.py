@@ -51,13 +51,29 @@ class TableCell_ImgI(lock.LockSection):
 
 # A Mutable Table
 class Header(lock.LockSection):
-    def __init__(self, display_name: str, type_instance:  Union[TableType_ZoomableSortableI, TableTypeImg, TableTypeButtonAPII, TableTypeButtonRedirectI]):
+    def __init__(self, 
+        display_name: str, 
+        type_instance:  Union[
+            TableType_ZoomableSortableI, 
+            TableTypeImg, 
+            TableTypeButtonAPII, 
+            TableTypeButtonRedirectI
+        ]
+    ):
         self.displayName= display_name
         self.type = type_instance
         super().__init__()
 
 class Row(lock.LockSection):
-    def __init__(self,  row: Union[str, int, TableCellButtonI, TableCell_ZoomableI, TableCell_ImgI]):
+    def __init__(self, 
+        row: Union[
+            str, 
+            int, 
+            TableCellButtonI, 
+            TableCell_ZoomableI, 
+            TableCell_ImgI
+        ]
+    ):
         self.row = row
         super().__init__()
 
@@ -82,6 +98,12 @@ class MutableTable(lock.LockSection):
 
     def sort_Row(self, column_index, reverse=False, compare_function=None):
         if compare_function:
-            self.rows.sort(key=lambda row: compare_function(row.row[column_index]), reverse=reverse)
+            self.rows.sort(
+                key=lambda row: compare_function(row.row[column_index]), 
+                reverse=reverse
+            )
         else:
-            self.rows.sort(key=lambda row: row.row[column_index], reverse=reverse)
+            self.rows.sort(
+                key=lambda row: row.row[column_index], 
+                reverse=reverse
+            )
