@@ -29,12 +29,7 @@ class TableTypeButtonRedirectI(lock.LockSection):
      config= QueryI()
      
     
-class TableCellString:
-    def __init__(self, value: str):
-        self.value = value
-class TableCellNumber:
-    def __init__(self, value: int):
-        self.value = value
+
 class TableCellButtonI(lock.LockSection):
     buttonText = lock.LockField(type=str)
     hiddenText= lock.LockField(type=str)
@@ -56,14 +51,13 @@ class TableCell_ImgI(lock.LockSection):
 
 # A Mutable Table
 class Header(lock.LockSection):
-    displayName = lock.LockField(type=str)  
-    def __init__(self, display_name: str, type_instance: lock.LockSection):
-        self.displayName.set(display_name)
+    def __init__(self, display_name: str, type_instance:  Union[TableType_ZoomableSortableI, TableTypeImg, TableTypeButtonAPII, TableTypeButtonRedirectI]):
+        self.displayName= display_name
         self.type = type_instance
         super().__init__()
 
 class Row(lock.LockSection):
-    def __init__(self,  row: Any):
+    def __init__(self,  row: Union[str, int, TableCellButtonI, TableCell_ZoomableI, TableCell_ImgI]):
         self.row = row
         super().__init__()
 
@@ -74,7 +68,7 @@ class MutableTable(lock.LockSection):
         self.rows = row_list
         super().__init__()
         
-    def add_rows(self, row_value : list):
+    def add_rows(self, row_value : Row):
         rows        = self.rows
         rows.append(row_value)
         self.set(
@@ -86,3 +80,8 @@ class MutableTable(lock.LockSection):
         self.mark_changed()
         self._fields['rows'].mark_changed()
 
+    def sort_Row(self, column_index, reverse=False, compare_function=None):
+        if compare_function:
+            self.rows.sort(key=lambda row: compare_function(row.row[column_index]), reverse=reverse)
+        else:
+            self.rows.sort(key=lambda row: row.row[column_index], reverse=reverse)
