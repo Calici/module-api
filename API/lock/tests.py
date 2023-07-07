@@ -288,36 +288,92 @@ class TupleField(unittest.TestCase):
         self.assertEqual(field.get(), ("KGZ", 2003))
         self.assertEqual(field.changed(), True)
 
-
     def test_flush(self):
         field = TupleFields([Lock.LockField(str), Lock.LockField(int)], length=2)
         field.set(('abc', 123))
         field.modify(0, 'def')
         field.flush()
-        self.assertEqual(field.changed(), False)
+        self.assertEqual(field.changed(), True)
     
-    def test_something(self):
+    def test_modify_tuple(self):
         class TestSection(LockSection):
             a = LockField(str, default = "a")
-        
         field = TupleFields([TestSection()], length=1)
-        # Assert the modified value
         field.modify(0, {"a" : "IRT"})
         self.assertEqual(field._value, ({"a": "IRT"},))
-        # Assert the changed status
+        self.assertEqual(field.changed(), False)
+    
+    def test_flush_tuple(self):
+        class TestSection(LockSection):
+            a = LockField(str, default="a")
+        field = TupleFields([TestSection()], length=1)
+        field._buffer = [{"type":"modify", "pos": 0, "elm": {"a" : "IRT"}}]
+        field.flush()
+        self.assertEqual(field._buffer, [])
+        self.assertEqual(field.changed(), False)
+
+    def test_append_list(self):
+        class TestSection(LockSection):
+            b = LockField(str, default="b")
+        field = ListFields(TestSection())
+        try:
+            field.append("soodon")
+            self.assertEqual("true", "false")
+        except ValueError:
+            pass
+
+    def test_reorder_list(self):
+        class TestSection(LockSection):
+            b = LockField(str, default="b")
+        field = ListFields(TestSection())
+        field._value = [{"b" : "A"}, {"b" : "C"}, {"b" : "G"}, {"b" : "T"}]
+        field.reorder([3, 0, 2, 1])
+        self.assertEqual(field._value, [{"b" : "T"}, {"b" : "A"}, {"b" : "G"}, {"b" : "C"}])
+        self.assertEqual(field.changed(), False)
+    
+    def test_modify_list(self):
+        class TestSection(LockSection):
+            b = LockField(str, default="b")
+        field = ListFields(TestSection())
+        field._value = [{"b" : "A"}, {"b" : "C"}, {"b" : "G"}, {"b" : "T"}]
+        try:
+            field.modify(3, "C")
+            self.assertEqual("true", "false")
+        except:
+            pass
+
+    def test_remove_list(self):
+        class TestSection(LockSection):
+            b = LockField(str, default="b")
+        field = ListFields(TestSection())
+        field._value = [{"b" : "A"}, {"b" : "C"}, {"b" : "G"}, {"b" : "T"}]
+        field.remove(2)
+        self.assertEqual(field._value, [{"b" : "A"}, {"b" : "C"}, {"b" : "T"}])
+        self.assertEqual(field.changed(), False)
+    
+    def test_empty_list(self):
+        class TestSection(LockSection):
+            b = LockField(str, default="b")
+        field = ListFields(TestSection())
+        field._value = [{"b" : "A"}, {"b" : "C"}, {"b" : "G"}, {"b" : "T"}]
+        field.empty()
+        self.assertEqual(field._value, [])
+        self.assertEqual(field.changed(), False)
+    
+    def test_flush_list(self):
+        class TestSection(LockSection):
+            b = LockField(str, default="b")
+        field = ListFields(TestSection())
+        field._buffer = [{"type": "modify", "pos": 1, "elm": {"b":"G"}}, {"type": "append", "elm": {"b":"T"}}]
+        field.flush()
+        self.assertEqual(field._buffer, [])
         self.assertEqual(field.changed(), False)
 
 
 
 
 
-
-
-
-
-
-
-
+    
 
 
 

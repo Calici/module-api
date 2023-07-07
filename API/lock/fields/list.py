@@ -177,7 +177,5 @@ class TupleField(Lock.LockField[Tuple[K]], Generic[K]):
         })
 
         
-
     def flush(self):
-        super().flush()
-        self._changed = False
+        self._buffer = []
