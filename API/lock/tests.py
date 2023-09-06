@@ -192,7 +192,7 @@ class TestListField(unittest.TestCase):
         self.assertEqual(len(field.get()), 4)
         self.assertEqual(field.get()[3], "bek")
 
-    def test_reoder(self):
+    def test_reorder(self):
         old_order = [1, 5, 3, 6]
         new_reordered = [3, 2, 0, 1]
         field = ListField(LockField(int, 0), old_order)
@@ -287,6 +287,7 @@ class TestListField(unittest.TestCase):
 
 
 
+    
 
 
 
