@@ -1,29 +1,29 @@
 import unittest
 import pathlib
 
-from .field import ListField, LockField
+from .field import  LockField
+from .list import ListField
 from .section import LockSection
 from .file import LockIO
 from .calici import LockHeader, LockStatus
-from API.lock.fields.list import ListField as ListFields, TupleField, Lock, Generic
 
 class TestField(unittest.TestCase):
     def test_initialize(self):
-        field   = LockField(float)
-        self.assertEqual(field._type, float)
+        field   = LockField(float, 0.0)
+        self.assertEqual(field.type, float)
 
     def test_initialize_with_default(self):
         field   = LockField(float, default = 0.0)
-        self.assertEqual(field._changed, False)
+        self.assertEqual(field.is_changed(), False)
 
     def test_initialize_and_set_value(self):
-        field   = LockField(float)
+        field   = LockField(float, 0.0)
         field.set(0.0)
-        self.assertEqual(field._changed, True)
+        self.assertEqual(field.is_changed(), True)
         self.assertEqual(field.get(), 0.0)
 
     def test_serializer(self):
-        field   = LockField(pathlib.Path)
+        field   = LockField(pathlib.Path, "")
         field.set(pathlib.Path('../lol'))
         self.assertEqual(isinstance(field.serialize(), str), True)
         self.assertEqual(isinstance(field.serialize_changes(), str), True)
@@ -40,51 +40,7 @@ class TestField(unittest.TestCase):
     def test_comparison(self):
         field   = LockField(pathlib.Path, '../lol')
         field2  = LockField(pathlib.Path, '../lol')
-        self.assertEqual(field, field2)
-
-class TestListField(unittest.TestCase):
-    def test_init_no_default_then_set_value(self):
-        field   = ListField(child = LockField(str))
-        truth   = ['asdf', 'asfs']
-        field.set(truth)
-        cur     = field.get()
-        self.assertEqual(
-            all([cur[i] == truth[i] for i in range(len(truth))]), True
-        )
-        self.assertEqual(
-            field.changed(), True
-        )
-
-    def test_init_with_default(self):
-        truth   = ['asdf', 'afds', 'dfsdf']
-        field   = ListField(LockField(str), truth)
-        cur     = field.get()
-        self.assertEqual(
-            all([cur[i] == truth[i] for i in range(len(truth))]), True
-        )
-        self.assertEqual(
-            field.changed(), False
-        )
-    
-    def test_broken_type(self):
-        truth   = [0, 1, 2, 32]
-        field   = ListField(LockField(int), truth)
-        try:
-            field.set(['asdf', 'asdf', 'asdf'])
-        except TypeError: return
-        self.assertEqual(False, True)
-
-    def test_max_length_with_default(self):
-        truth   = ['asdf', 'adsf', 'aaaa']
-        field   = ListField(LockField(str), truth, 2)
-        self.assertEqual(field.get().__len__(), 2)
-    
-    def test_max_length_without_default(self):
-        truth   = ['adff', 'aaaa', 'bbbb']
-        field   = ListField(LockField(str), max_length = 2)
-        self.assertEqual(field.get().__len__(), 0)
-        field.set(truth)
-        self.assertEqual(field.get().__len__(), 2)
+        self.assertEqual(field.get(), field2.get())
 
 class TestSection(unittest.TestCase):
     def test_init_section(self):
@@ -92,7 +48,9 @@ class TestSection(unittest.TestCase):
             test_number = LockField(int, default = 0)
             test_count  = LockField(int, default = 0)
             test_name   = LockField(str, default = 'lol')
-            test_lol    = ListField(child = LockField(type = str), default = [])
+            test_lol    = ListField(
+                child = LockField(str, ""), default = []
+            )
         test    = LockSectionTest(
             test_number = 1, test_count = 1, test_name = 'abcd'
         )
@@ -114,7 +72,7 @@ class TestSection(unittest.TestCase):
         self.assertEqual(test_val['test_number'], 1)
         self.assertEqual(test_val['test_count'], 1)
         self.assertEqual(test_val['test_name'], 'asdfasdf')
-        self.assertEqual(test.changed(), True)
+        self.assertEqual(test.is_changed(), True)
 
     def test_init_serialize_changes(self):
         class LockSectionTest(LockSection):
@@ -135,8 +93,8 @@ class TestSection(unittest.TestCase):
         test    = LockSectionTest(
             test_number = 1, test_count = 1, test_name = 'abcd'
         )
-        self.assertEqual(test.test_number, 1)
-        self.assertEqual(test.test_count, 1)
+        self.assertEqual(test.test_number.get(), 1)
+        self.assertEqual(test.test_count.get(), 1)
     
     def test_recursive_set(self):
         class LockSectionBottom(LockSection):
@@ -154,10 +112,10 @@ class TestSection(unittest.TestCase):
         test.test_attr.set(test_lol = 'adsf')
         test.set(test_attr = {'test_bot' : {'test_hah' : 'ffff'}})
         test.flush()
-        self.assertEqual(test.test_number, 1)
-        self.assertEqual(test.test_count, 1)
-        self.assertEqual(test.changed(), False)
-        self.assertEqual(test.test_attr, {
+        self.assertEqual(test.test_number.get(), 1)
+        self.assertEqual(test.test_count.get(), 1)
+        self.assertEqual(test.is_changed(), False)
+        self.assertEqual(test.test_attr.get(), {
             'test_lol' : 'adsf', 'test_bot' : {'test_hah' : 'ffff'}}
         )
 
@@ -193,8 +151,8 @@ class TestFile(unittest.TestCase):
         # Assert that the file have changed
         lock        = TestLockIO(self.TEST_LOCK_FILE_PATH / lock_name)
         # Read lock
-        self.assertEqual(lock.status.status, 'INIT')
-        self.assertEqual(lock.status.is_connected, True)
+        self.assertEqual(lock.status.status.get(), 'INIT')
+        self.assertEqual(lock.status.is_connected.get(), True)
 
     def test_set_illegal_content(self):
         lock_name   = 'test.lock'
@@ -219,71 +177,105 @@ class TestFile(unittest.TestCase):
         )
         lock_1.reload()
         lock_2.reload()
-        self.assertEqual(lock_1.header.process, 'dock_lol')
-        self.assertEqual(lock_2.status.status, 'INIT')
-        self.assertEqual(lock_2.status.is_connected, True)
+        self.assertEqual(lock_1.header.process.get(), 'dock_lol')
+        self.assertEqual(lock_2.status.status.get(), 'INIT')
+        self.assertEqual(lock_2.status.is_connected.get(), True)
 
-class ListLockField(unittest.TestCase):
+class TestListField(unittest.TestCase):
     def test_append(self):
         truth = ["nur", "sul", "tan"]
-        field = ListFields(Lock.LockField(str), truth)
+        field = ListField(LockField(str, ""), truth)
         field.append("bek")
         self.assertEqual(field._buffer.__len__(), 1)
-        self.assertEqual(field._buffer[0]["type"], "append")
-        self.assertEqual(field._buffer[0]["elm"],"bek")
-        self.assertEqual(len(truth), 4)
-        self.assertEqual(truth[3], "bek")
+        operation = field._buffer[0, "append"]
+        self.assertEqual(operation["elm"],"bek")
+        self.assertEqual(len(field.get()), 4)
+        self.assertEqual(field.get()[3], "bek")
 
     def test_reoder(self):
         old_order = [1, 5, 3, 6]
         new_reordered = [3, 2, 0, 1]
-        field = ListFields(Lock.LockField(int), old_order)
+        field = ListField(LockField(int, 0), old_order)
         field.reorder(new_reordered)
-        self.assertEqual(field._buffer.__len__(), 2)
-        self.assertEqual(field._buffer[1]["type"], "reorder")
-        self.assertEqual(field._buffer[1]["newOrder"], [3, 2, 0, 1])
-        self.assertEqual(field, [6, 3, 1, 5])
+        self.assertEqual(field._buffer.__len__(), 1)
+        operation = field._buffer[0, "reorder"]
+        self.assertEqual(operation["newOrder"], [3, 2, 0, 1])
+        self.assertEqual(field.get(), [6, 3, 1, 5])
 
     def test_modify(self):
         nums = [1, 4, 5, 6, 3]
         inx = 3
         new_elem = 10
-        field = ListFields(Lock.LockField(int), nums)
+        field = ListField(LockField(int, 0), nums)
         field.modify(inx, new_elem)
-        self.assertEqual(field._buffer.__len__(), 3)
-        self.assertEqual(field._buffer[2]["type"], "modify")
-        self.assertEqual(field._buffer[2]["inx"], 3)
-        self.assertEqual(field._buffer[2]["elm"], 10)
-        self.assertEqual(len(nums), 5)
+        self.assertEqual(field._buffer.__len__(), 1)
+        operation = field._buffer[0, "modify"]
+        self.assertEqual(operation["pos"], 3)
+        self.assertEqual(operation["elm"], 10)
+        self.assertEqual(len(field.get()), 5)
     
     def test_remove(self):
         truth = ["nur", "sul", "tan"]
         inx = 1
-        field = ListFields(Lock.LockField(str), truth)
+        field = ListField(LockField(str, ""), truth)
         field.remove(1)
-        self.assertEqual(field._buffer.__len__(), 4)
-        self.assertEqual(field._buffer[3]["type"], "remove")
-        self.assertEqual(field._buffer[3]["inx"], inx)
-        self.assertEqual(len(truth), 2)
+        self.assertEqual(field._buffer.__len__(), 1)
+        operation = field._buffer[0, "remove"]
+        self.assertEqual(operation["pos"], inx)
+        self.assertEqual(len(field.get()), 2)
 
     def test_empty(self):
         truth = ["nur", "sul", "tan"]
-        field = ListFields(Lock.LockField(str), truth)
+        field = ListField(LockField(str, ""), truth)
         field.empty()
-        self.assertEqual(field._buffer.__len__(), 5)
-        self.assertEqual(field._buffer[4]["type"], ["empty"])
-        self.assertEqual(len(truth), 0)
+        self.assertEqual(field._buffer.__len__(), 1)
+        operation = field._buffer[0, "empty"]
+        self.assertEqual(len(field.get()), 0)
 
     def test_flush(self):
         truth = ["nur", "sul", "tan"]
-        field = ListFields(Lock.LockField(str), truth)
-        field.flush()
+        field = ListField(LockField(str, ""), truth)
+        field.clear_buffer()
         self.assertEqual(field._buffer.__len__(), 0)
-        
+    
+    def test_init_no_default_then_set_value(self):
+        field   = ListField(LockField(str, ""), [])
+        truth   = ['asdf', 'asfs']
+        field.set(truth)
+        cur     = field.get()
+        self.assertEqual(
+            all([cur[i] == truth[i] for i in range(len(truth))]), True
+        )
+        self.assertEqual(field.is_changed(), True)
 
+    def test_init_with_default(self):
+        truth   = ['asdf', 'afds', 'dfsdf']
+        field   = ListField(LockField(str, ""), truth)
+        cur     = field.get()
+        self.assertEqual(
+            all([cur[i] == truth[i] for i in range(len(truth))]), True
+        )
+        self.assertEqual(field.is_changed(), False)
+    
+    def test_broken_type(self):
+        truth   = [0, 1, 2, 32]
+        field   = ListField(LockField(int, 0), truth)
+        try:
+            field.set(['asdf', 'asdf', 'asdf'])
+        except TypeError: return
+        self.assertEqual(False, True)
 
-
-
+    def test_max_length_with_default(self):
+        truth   = ['asdf', 'adsf', 'aaaa']
+        field   = ListField(LockField(str, ""), truth, 2)
+        self.assertEqual(field.get().__len__(), 2)
+    
+    def test_max_length_without_default(self):
+        truth   = ['adff', 'aaaa', 'bbbb']
+        field   = ListField(LockField(str, ""), [], max_length = 2)
+        self.assertEqual(field.get().__len__(), 0)
+        field.set(truth)
+        self.assertEqual(field.get().__len__(), 2)
 
 
 

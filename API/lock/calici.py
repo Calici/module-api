@@ -4,7 +4,8 @@ from pathlib import Path
 
 # Local Imports
 from .file import LockIO
-from .field import LockField, ListField
+from .field import LockField
+from .list import ListField
 from .section import LockSection
 from common.other_lib import get_current_time
 
@@ -49,10 +50,10 @@ class LockStatus(LockSection):
 class LockHeader(LockSection):
     process     = LockField(str, default = LockProcessType.DOCKING)
     workdir     = LockField(Path, default = Path('../workdir'))
-    sharedir    = LockField(Path)
-    module_id   = LockField(int)
-    log_path    = LockField(Path)
-    pid         = LockField(int)
+    sharedir    = LockField(Path, default = Path('../sharedir'))
+    module_id   = LockField(int, default = -1)
+    log_path    = LockField(Path, default = Path("../logPath"))
+    pid         = LockField(int, default = -1)
     gpu_blocks  = ListField(GPUStatus(), [])
 
 class CaliciLock(LockIO):
@@ -76,7 +77,7 @@ class CaliciLock(LockIO):
             / self.__reserved_file_path__ \
             / self.__error_file_path__
     # changing status
-    def change_status(self, status : LockIOStatusType):
+    def change_status(self, status : str):
         if not self.file_exists():
             return
         if self.is_complete():

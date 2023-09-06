@@ -58,7 +58,7 @@ class LockIO(LockSection):
             self.dumper(f, conf)
         self._thread_lock.release()
         # Set the values from the file
-        self._set_value(conf, False)
+        self.set_value(conf, False)
         self.flush()
 
     def save(self):
@@ -73,7 +73,7 @@ class LockIO(LockSection):
     # Initialize values
     def _init_value(self, path : pathlib.Path):
         conf    = self._file_values(path)
-        self._set_value(conf, False)
+        self.set_value(conf, False)
 
     # Reload Config
     def reload(self):
