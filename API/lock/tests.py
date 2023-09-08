@@ -6,6 +6,8 @@ from .list import ListField
 from .section import LockSection
 from .file import LockIO
 from .calici import LockHeader, LockStatus
+from .type import TypeField
+from .tuple import TupleField
 
 class TestField(unittest.TestCase):
     def test_initialize(self):
@@ -48,9 +50,7 @@ class TestSection(unittest.TestCase):
             test_number = LockField(int, default = 0)
             test_count  = LockField(int, default = 0)
             test_name   = LockField(str, default = 'lol')
-            test_lol    = ListField(
-                child = LockField(str, ""), default = []
-            )
+            test_lol    = ListField(TypeField(LockField, str), default = [])
         test    = LockSectionTest(
             test_number = 1, test_count = 1, test_name = 'abcd'
         )
@@ -184,29 +184,29 @@ class TestFile(unittest.TestCase):
 class TestListField(unittest.TestCase):
     def test_append(self):
         truth = ["nur", "sul", "tan"]
-        field = ListField(LockField(str, ""), truth)
+        field = ListField(TypeField(LockField, str), truth)
         field.append("bek")
         self.assertEqual(field._buffer.__len__(), 1)
         operation = field._buffer[0, "append"]
         self.assertEqual(operation["elm"],"bek")
         self.assertEqual(len(field.get()), 4)
-        self.assertEqual(field.get()[3], "bek")
+        self.assertEqual(field.serialize()[3], "bek")
 
     def test_reorder(self):
         old_order = [1, 5, 3, 6]
         new_reordered = [3, 2, 0, 1]
-        field = ListField(LockField(int, 0), old_order)
+        field = ListField(TypeField(LockField, int), old_order)
         field.reorder(new_reordered)
         self.assertEqual(field._buffer.__len__(), 1)
         operation = field._buffer[0, "reorder"]
         self.assertEqual(operation["newOrder"], [3, 2, 0, 1])
-        self.assertEqual(field.get(), [6, 3, 1, 5])
+        self.assertEqual(field.serialize(), [6, 3, 1, 5])
 
     def test_modify(self):
         nums = [1, 4, 5, 6, 3]
         inx = 3
         new_elem = 10
-        field = ListField(LockField(int, 0), nums)
+        field = ListField(TypeField(LockField, int), nums)
         field.modify(inx, new_elem)
         self.assertEqual(field._buffer.__len__(), 1)
         operation = field._buffer[0, "modify"]
@@ -217,7 +217,7 @@ class TestListField(unittest.TestCase):
     def test_remove(self):
         truth = ["nur", "sul", "tan"]
         inx = 1
-        field = ListField(LockField(str, ""), truth)
+        field = ListField(TypeField(LockField, str), truth)
         field.remove(1)
         self.assertEqual(field._buffer.__len__(), 1)
         operation = field._buffer[0, "remove"]
@@ -226,7 +226,7 @@ class TestListField(unittest.TestCase):
 
     def test_empty(self):
         truth = ["nur", "sul", "tan"]
-        field = ListField(LockField(str, ""), truth)
+        field = ListField(TypeField(LockField, str), truth)
         field.empty()
         self.assertEqual(field._buffer.__len__(), 1)
         operation = field._buffer[0, "empty"]
@@ -234,15 +234,15 @@ class TestListField(unittest.TestCase):
 
     def test_flush(self):
         truth = ["nur", "sul", "tan"]
-        field = ListField(LockField(str, ""), truth)
+        field = ListField(TypeField(LockField, str), truth)
         field.clear_buffer()
         self.assertEqual(field._buffer.__len__(), 0)
     
     def test_init_no_default_then_set_value(self):
-        field   = ListField(LockField(str, ""), [])
+        field   = ListField(TypeField(LockField, str), [])
         truth   = ['asdf', 'asfs']
         field.set(truth)
-        cur     = field.get()
+        cur     = field.serialize()
         self.assertEqual(
             all([cur[i] == truth[i] for i in range(len(truth))]), True
         )
@@ -250,8 +250,8 @@ class TestListField(unittest.TestCase):
 
     def test_init_with_default(self):
         truth   = ['asdf', 'afds', 'dfsdf']
-        field   = ListField(LockField(str, ""), truth)
-        cur     = field.get()
+        field   = ListField(TypeField(LockField, str), truth)
+        cur     = field.serialize()
         self.assertEqual(
             all([cur[i] == truth[i] for i in range(len(truth))]), True
         )
@@ -259,7 +259,7 @@ class TestListField(unittest.TestCase):
     
     def test_broken_type(self):
         truth   = [0, 1, 2, 32]
-        field   = ListField(LockField(int, 0), truth)
+        field   = ListField(TypeField(LockField, int), truth)
         try:
             field.set(['asdf', 'asdf', 'asdf'])
         except TypeError: return
@@ -267,29 +267,44 @@ class TestListField(unittest.TestCase):
 
     def test_max_length_with_default(self):
         truth   = ['asdf', 'adsf', 'aaaa']
-        field   = ListField(LockField(str, ""), truth, 2)
+        field   = ListField(TypeField(LockField, str), truth, 2)
         self.assertEqual(field.get().__len__(), 2)
     
     def test_max_length_without_default(self):
         truth   = ['adff', 'aaaa', 'bbbb']
-        field   = ListField(LockField(str, ""), [], max_length = 2)
-        self.assertEqual(field.get().__len__(), 0)
+        field   = ListField(TypeField(LockField, str), [], max_length = 2)
+        self.assertEqual(len(field.get()), 0)
         field.set(truth)
-        self.assertEqual(field.get().__len__(), 2)
+        self.assertEqual(len(field.get()), 2)
 
-
-
-
-
-
-
-
-
-
-
+    def test_list_in_list(self):
+        field = ListField(
+            TypeField(ListField, TypeField(LockField, str)), #type: ignore
+            [["a", "b", "c"], ["d", "e", "f"], ["g", "h", "i"]]
+        )
+        entries = field.get()
+        self.assertTrue(isinstance(entries[0], ListField))
+        self.assertTrue(isinstance(entries[0].get()[0], LockField))
     
+    def test_list_in_list_append(self):
+        field = ListField(
+            TypeField(ListField, TypeField(LockField, str)), #type: ignore
+            [["a", "b", "c"], ["d", "e", "f"], ["g", "h", "i"]]
+        )
+        field.append(["a", "b", "c"])
+        entries = field.get()
+        last_field = entries.pop()
+        self.assertEqual(last_field.serialize(), ["a", "b", "c"])
 
-
-
-        
-        
+class TestTupleField(unittest.TestCase):
+    def test_initialize(self):
+        children = [
+            TypeField(LockField, str), 
+            TypeField(LockField, str), 
+            TypeField(LockField, str)
+        ]
+        field = TupleField(children, ["Hello", "World", "Light"])
+        self.assertEqual(
+            field.serialize(), ["Hello", "World", "Light"]
+        )
+    

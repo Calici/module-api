@@ -1,6 +1,6 @@
+from __future__ import annotations
 # API Imports
 import API.lock as lock
-from API.lock.type import TypeField
 
 # Library Imports
 from typing import \
@@ -9,8 +9,17 @@ from typing import \
     Callable, \
     Any, \
     Dict, \
-    List
-import datetime
+    List, \
+    Any, \
+    TypedDict
+
+from .common import \
+    v1_ProgressField, \
+    v1_ControlConfig, \
+    v1_SmartBoxes, \
+    v1_TimeField, \
+    v1_Messages
+    
 
 class QueryI(lock.LockSection):
     method = lock.LockField(type = str, default = 'GET')
@@ -57,14 +66,19 @@ CellT = Union[
     TableCell_ImgI
 ]
 
-class RowList(lock.ListField):
+class RowListField(lock.ListField[
+    List[Dict[str, Any]], 
+    lock.TupleField[Dict[str, Any], CellT]
+]):
     def __init__(self, 
         row_types : List[Callable[[Any], CellT]], *args, **kwargs
     ):
         super().__init__(
-            child_constructor = TypeField(lock.TupleField, row_types), 
+            lock.TypeField(lock.TupleField, row_types),
             *args, **kwargs
         )
+
+
 class Header(lock.LockSection):
     displayName = lock.LockField(type = str, default = "")
     type : Union[
@@ -84,49 +98,63 @@ class Header(lock.LockSection):
         self.type = header_type
         super().__init__(**kwargs)
 
+    class HeaderT(TypedDict):
+        displayName : str
+        type : Union[
+            TableType_ZoomableSortableI, 
+            TableTypeImg, 
+            TableTypeButtonAPII, 
+            TableTypeButtonRedirectI
+        ]
+    @staticmethod
+    def create_header(
+        config : List[HeaderT]
+    ) -> lock.TupleField[Dict[str, Any], Header]:
+        return lock.TupleField([
+            lambda v : Header(entry['type'], **v)
+            for entry in config
+        ], [{
+            'displayName' : entry['displayName']
+        } for entry in config])
+
 class MutableTable(lock.LockSection):
-    # headers = lock.ListField(child = Header())
+    headers : lock.TupleField[Dict[str, Any], Header]
+    rows : RowListField
     def __init__(self, 
-        header_list: lock.ListField[Dict[str, Any], Header], 
-        row_list: lock.ListField[List[CellT], RowList]
+        headers : lock.TupleField[Dict[str, Any], Header], 
+        rows : RowListField     
     ):
-        self.headers = header_list
-        self.rows = row_list
+        self.headers = headers
+        self.rows = rows
         super().__init__()
-        
-    def append_rows(self, row : List[Any]):
-        self.rows.append(self.rows._child.validate(row))
 
-    def modify_rows(self, pos : int, row : List[Any]):
-        self.rows.modify(pos, self.rows._child.validate(row))
-
-    def sort_Row(self, 
-        column_index: int, 
-        reverse: bool = False, 
-        compare_function: Callable = lambda x: x
-    ) -> None:
-        rows = self.rows.get()
-        indexes = list(range(len(rows)))
+    def sort_rows(self, 
+        column_id : int, 
+        reverse : bool = False, 
+        compare_function : Callable[[Any], Any] = 
+            lambda x : x 
+    ):
+        indexes = list(range(len(self.rows)))
         indexes.sort(
             key = lambda id : compare_function(
-                rows[id].get()[column_index].serialize()
+                self.rows.get()[id].get()[column_id].get()
             ), 
             reverse = reverse
         )
         self.rows.reorder(indexes)
 
-class ProgressField(lock.LockSection):
-    value = lock.LockField(type=float, default=0.0)
-    bouncy = lock.LockField(type=bool, default=False)
-class SmartBox(lock.LockSection):
-    type=lock.LockField(type=int, default=0)
-    title=lock.LockField(type=str, default="")
-    content=lock.LockField(type=str, default="")
-
-class TimeField(lock.LockSection):
-    startTime=lock.DateTimeField(default = datetime.datetime.now())
-    timeDelta=lock.LockField(type=int, default=1)
-    
-class ControlConfig(lock.LockSection):
-    show_run    = lock.LockField(type = bool, default = True)
-    show_stop   = lock.LockField(type = bool, default = True)
+class ComponentWithTable(lock.LockSection):
+    version = lock.LockField(type = str, default = '1.0')
+    progress = v1_ProgressField()
+    messages = v1_Messages()
+    status = lock.LockField(str, default = '')
+    controls = v1_ControlConfig()
+    time = v1_TimeField()
+    smartboxes = v1_SmartBoxes()
+    table : MutableTable
+    def __init__(self, 
+        table : MutableTable, buffer_length : int = 10, **kwargs
+    ):
+        self.table = table
+        self.messages._max_length = buffer_length
+        super().__init__(**kwargs)

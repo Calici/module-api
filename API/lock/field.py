@@ -12,7 +12,8 @@ from typing import \
 from pypharmaco.structure.field import \
     Field, \
     BaseField
-from abc import abstractmethod
+from abc import \
+    abstractmethod
 
 JSONSerializable    = Union[
     None, int, str, bool, float, datetime,
@@ -65,7 +66,7 @@ class LockBase(BaseField[T], Generic[T]):
     get_value() -> get the value
     set(value or kwargs) -> set value
 """
-class LockField(Generic[T],  Field[T], LockBase[T]):
+class LockField(Generic[T], Field[T], LockBase[T]):
     RETURN_RAW_FIELDS = (
         int, str, bool, float, list, dict, datetime
     )
@@ -74,6 +75,7 @@ class LockField(Generic[T],  Field[T], LockBase[T]):
     ):
         Field.__init__(self, type, default, allow_none = not force)
         LockBase.__init__(self)
+        self.flush()
         
     def serialize(self) -> JSONSerializable:
         if isinstance(self.value, LockField.RETURN_RAW_FIELDS):
@@ -96,3 +98,6 @@ class LockField(Generic[T],  Field[T], LockBase[T]):
     
     def set(self, value : Any):
         self.set_value(value)
+
+    def __str__(self):
+        return 'LockField[{0}]({1})'.format(self.type, self.serialize())

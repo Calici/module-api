@@ -7,6 +7,7 @@ from .file import LockIO
 from .field import LockField
 from .list import ListField
 from .section import LockSection
+from .type import SpreadKwargs
 from common.other_lib import get_current_time
 
 # Conditions of the running process
@@ -54,7 +55,7 @@ class LockHeader(LockSection):
     module_id   = LockField(int, default = -1)
     log_path    = LockField(Path, default = Path("../logPath"))
     pid         = LockField(int, default = -1)
-    gpu_blocks  = ListField(GPUStatus(), [])
+    gpu_blocks  = ListField(SpreadKwargs(GPUStatus), [])
 
 class CaliciLock(LockIO):
     header      = LockHeader()

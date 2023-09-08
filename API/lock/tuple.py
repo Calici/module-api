@@ -7,51 +7,69 @@ from typing import \
     Generic, \
     TypeVar, \
     Any, \
-    Tuple
-import copy
+    Callable, \
+    Union
+from .types import FieldBuffer, ArrayOpT
+import logging
 
-K = TypeVar("K")
-class TupleField(LockField[List[K]], Generic[K]):
+T = TypeVar('T')
+V = TypeVar('V', bound = LockBase)
+class TupleField(LockField[List[V]], Generic[T, V]):
     """
-        TupleField, basically a list field but with non modifiable length
+        TupleField, implemented as an immutable list. The init class should
+        initialize the field. 
     """
     def __init__(self, 
-        children : List[LockBase[K]],
-        default : List[K] = [], 
-        length : int = 0,
+        children : List[Callable[[T], V]], 
+        default : List[T] = [], 
         force : bool = True
     ):
-     self._length = length
-     self._children = self.validate_children([
-         copy.deepcopy(child) for child in children
-     ])
-     super().__init__(list, default, force)
+        self._length = len(children)
+        self._buffer = FieldBuffer()
+        self._children = children
+        LockField.__init__(self, list, default, force)
+        
+    def make_child(self, idx : int, value : T) -> V:
+        return self._children[idx](value)
     
-    def validate_children(self, children : Any) -> List[LockBase[K]]:
-        try:
-            assert all(isinstance(child, LockBase) for child in children)
-        except AssertionError:
-            raise AssertionError('Child has be of type {0}'.format(LockBase))
-        return children
-
-    def validate(self, value : List[K]) -> List[K]:
+    def validate(self, value : List[Any]) -> List[V]:
+        if len(value) != self._length:
+            raise ValueError(
+                "Length Mismatch, expected {0} but got {1}".format(
+                    self._length, len(value)
+                )
+            )
+        value = [
+            self.make_child(i, value[i]) for i in range(len(value))
+        ]
+        return value
+    
+    def set_value(self, value : Union[List[T], ArrayOpT], change : bool = True):
+        if isinstance(value, list):
+            self.value = self.validate(value)
+        elif isinstance(value, dict):
+            self.value = self.apply_operation(value)
+        self.set_change(change)
+    
+    def apply_operation(self, value : ArrayOpT):
+        if value['type'] == 'modify':
+            self.modify(value['pos'], value['elm'])
+        else: 
+            logging.warning('Invalid Dict {0}'.format(str(value)))
+    
+    def serialize(self) -> List[JSONSerializable]:
         return [
-            child.validate(entry) for entry, child in zip(value, self._children)
+            entry.serialize() for entry in self.value
         ]
     
-    def _assertLength(self, value : List[K]) -> List[K]:
-        if len(value) != self._length:
-            raise AssertionError(f'Length of array should be fixed')
-        else:
-            return value
-
-    def set_value(self, value : List[K], change : bool = True):
-        self.value = self.validate(value)
-        self._changed = change
+    def modify(self, pos : int, elm : T):
+        self.value[pos].set(elm)
+        self._buffer.add({
+            'type' : 'modify', 'pos' : pos, 'elm' : elm
+        })
     
-    def serialize(self) -> JSONSerializable:
-        build_list = []
-        for entry, child in zip(self.value, self._children):
-            child.set_value(entry, False)
-            build_list.append(child.serialize())
-        return build_list
+    def clear_buffer(self):
+        self._buffer.clear()
+
+    def __len__(self):
+        return len(self.value)

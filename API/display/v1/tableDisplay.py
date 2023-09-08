@@ -1,40 +1,32 @@
 import API.lock as lock
-import datetime
 
 # Local Imports
-from .components import MutableTable
+from .components import \
+    MutableTable, \
+    ProgressField, \
+    TimeField, \
+    SmartBox
 
-
-class ProgressField(lock.LockSection):
-    value = lock.LockField(type=float, default=0.0)
-    bouncy = lock.LockField(type=bool, default=False)
-class SmartBox(lock.LockSection):
-    type=lock.LockField(type=int, default=0)
-    title=lock.LockField(type=str, default="")
-    content=lock.LockField(type=str, default="")
-
-class TimeField(lock.LockSection):
-    startTime=lock.DateTimeField(default=datetime.datetime.now())
-    timeDelta=lock.LockField(type=int, default=1)
-class ControlConfig(lock.LockSection):
-    show_run    = lock.LockField(type = bool, default = True)
-    show_stop   = lock.LockField(type = bool, default = True)
-
-class BaseComponent(lock.LockSection):
+class DisplayWithTableComponent(lock.LockSection):
     version = lock.LockField(type = str, default = '1.0')
-    table= MutableTable()
     progress    = ProgressField()
     messages    = lock.ListField(
-        child = lock.LockField(str)
+        child = lock.LockField(str, default = ""), default = []
     )
     status      = lock.LockField(
         type = str, default = ''
     )
     # controls    = ControlConfig()
-    time= TimeField()
-    smartBoxes=lock.ListField(child=SmartBox())
+    time = TimeField()
+    smartBoxes = lock.ListField()
     
-    def __init__(self, buffer_length : int = 10, **kwargs):
+    table : MutableTable
+    def __init__(self,
+        table : MutableTable,
+        buffer_length : int = 10, 
+        **kwargs
+    ):
+        self.table = table
         self.messages._max_length   = buffer_length
         super().__init__()
         self.set(**kwargs)

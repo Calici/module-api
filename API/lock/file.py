@@ -13,20 +13,17 @@ from .utils import recursive_merge
 class LockIO(LockSection):
     FORCE_READ_TIMEOUT  = 0.2
     FORCE_READ_TRIAL    = 10
-    def __init__(self,
-        file_path   : pathlib.Path,
-        **kwargs
-    ):
+    def __init__(self, file_path   : pathlib.Path, **kwargs):
         # Initialize things important for FileIO
-        self.file_path  = pathlib.Path(file_path)
-        new_file        = not self.file_path.exists()
-        # Initialize the LockIO as a secti on
+        self.file_path = pathlib.Path(file_path)
+        new_file = not self.file_path.exists()
         super().__init__(**kwargs)
         self.process    = None
         # Prevent multi thread error
         self._thread_lock   = threading.Lock()
         # File IO
         self._init_file(new_file, self.file_path)
+        self.set_value(kwargs, False)
 
     # Initialize the file for use with the API
     def _init_file(self, new : bool, path : pathlib.Path):

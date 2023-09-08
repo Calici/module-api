@@ -18,5 +18,5 @@ def api_to_django_execute(org_func):
             else: 
                 raise NoRetryError(post_req)
         except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as ex:
-            raise RetryError('Connection error')
+            raise RetryError('Connection error or timeout occurred')
     return f_wrapper

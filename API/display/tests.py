@@ -1,5 +1,14 @@
-from .component import ComponentWithTable as AllAllowedComponent, ComponentWithTable
 from .display import Display
+from .components import \
+    v1_ComponentWithoutTable, \
+    v1_ComponentWithTable, \
+    v0_ComponentWithoutTable, \
+    v0_ComponentWithTable
+from .components.v1_table import \
+    MutableTable as v1_MutableTable, \
+    Header as v1_Header, \
+    RowListField as v1_Rows, \
+    TableType_ZoomableSortableI as v1_ZoomableSortable
 
 import unittest
 import pathlib
@@ -10,6 +19,7 @@ import json
 class TestDisplay(unittest.TestCase):
     def setUp(self):
         test_folder     = pathlib.Path('./.temp').resolve()
+        test_folder.mkdir(parents = True, exist_ok = True)
         test_lock_file  = lock.CaliciLock(
             test_folder / 'calici.lock', 
             header = {'workdir' : test_folder}
@@ -18,48 +28,37 @@ class TestDisplay(unittest.TestCase):
         self.lock           = test_lock_file
         self.test_folder    = test_folder
 
-    def test_init(self):
-        display     = Display(
-            lock = self.lock,
-            dtype = 0,
-            component = ComponentWithTable()
+    def tearDown(self):
+        shutil.rmtree(
+            self.test_folder
         )
-        self.assertEqual(
-            pathlib.Path(display.file_path).is_file(), True
-        )
-        self.assertEqual(
-            pathlib.Path(display.file_path).is_file(), True
-        )
-        self.assertEqual(
-            display.component.messages.__len__(), 0
-        )
-        with open(display.file_path) as f:
-            cont    = json.load(f)
-            self.assertEqual(
-                cont['dtype'], 0
-            )
 
+    def test_init(self):
+        display = Display(
+            lock = self.lock, dtype = 0, component = v1_ComponentWithoutTable()
+        )
+        self.assertEqual(pathlib.Path(display.file_path).is_file(), True)
+        self.assertEqual(pathlib.Path(display.file_path).is_file(), True)
+        self.assertEqual(len(display.component.messages), 0)
+        with open(display.file_path) as f:
+            self.assertEqual(json.load(f)['dtype'], 0)
+    
     def test_init_and_set_values(self):
-        display     = Display(
-            lock    = self.lock, dtype = 0,
-            component = ComponentWithTable()
+        display = Display(
+            lock = self.lock, dtype = 0, component = v1_ComponentWithoutTable()
         )
-        messages    = display.component.messages
-        messages.append('ASDF')
-        display.component.set(
-            progress = 0.0, messages = messages
-        )
+        display.component.messages.append({
+            "title" : "Hey", "content" : "Heyyy"
+        })
+        display.component.set(progress = {'value' : 0})
         display.save()
         with open(display.file_path, 'r') as f:
             content = f.read()
-        self.assertEqual(
-            content, json.dumps(display.serialize())
-        )
-    
+        self.assertEqual(content, json.dumps(display.serialize()))
+
     def test_display_functions(self):
-        display     = Display(
-            lock = self.lock, dtype = 1,
-            component = ComponentWithTable()
+        display = Display(
+            lock = self.lock, dtype = 0, component = v1_ComponentWithoutTable()
         )
         display.status_complete()
         with open(display.file_path, 'r') as f:
@@ -67,74 +66,39 @@ class TestDisplay(unittest.TestCase):
             self.assertEqual(
                 content['component']['status'], lock.LockIOStatusType.COMPLETE
             )
-    
-    def test_dtype_functioning(self):
-        display     = Display(
+    def test_component_with_table(self):
+        display = Display(
             lock = self.lock, dtype = 1, 
-            component = ComponentWithTable()
+            component = v1_ComponentWithTable(
+                v1_MutableTable(
+                    v1_Header.create_header([{
+                        'displayName' : 'Column 1', 
+                        'type' : v1_ZoomableSortable()
+                    }, {
+                        'displayName' : 'Column 2', 
+                        'type' : v1_ZoomableSortable()
+                    }]),
+                    v1_Rows([
+                        lock.TypeField(lock.LockField, str), 
+                        lock.TypeField(lock.LockField, str)
+                    ], [
+                        ["1.1", "1.2"], ["2.1", "2.2"]
+                    ])
+                    
+                )
+            )
         )
-        display.status_complete()
+        rows = display.component.table.rows.get()
+        for i in range(len(rows)):
+            row = rows[i].get()
+            for j in range(len(row)):
+                cell = row[j].get()
+                self.assertEqual(cell, '{0}.{1}'.format(i + 1, j + 1))
+        display.save()
         with open(display.file_path, 'r') as f:
-            content     = json.load(f)
-            self.assertEqual(content['dtype'], 1)
-
-    def test_table_types_sortable_and_zoomable(self):
-        display     = Display(
-            lock = self.lock, dtype = 0, component = ComponentWithTable(
-                table = {
-                    'types' : [
-                        {'type' : 'number', 'sortable' : True}, 
-                        {'type' : 'number', 'zoomable' : True}
-                    ]
-                }
+            content = f.read()
+            self.assertEqual(content, json.dumps(display.serialize()))
+            content = json.loads(content)
+            self.assertEqual(
+                len(content['component']['table']['rows']), 2
             )
-        )
-        display2    = Display(
-            lock = self.lock, dtype = -1, component = AllAllowedComponent()
-        )
-        display2.set(**display.serialize())
-        print(display2.component.table.get())
-        self.assertEqual(
-            display2.component.table.types[0]['type'], 'number'
-        )
-        self.assertEqual(
-            display2.component.table.types[0]['sortable'], True
-        )
-        self.assertEqual(
-            display2.component.table.types[0]['zoomable'], False
-        )
-        self.assertEqual(
-            display2.component.table.types[1]['type'], 'number'
-        )
-        self.assertEqual(
-            display2.component.table.types[1]['sortable'], False
-        )
-        self.assertEqual(
-            display2.component.table.types[1]['zoomable'], True
-        )
-    def test_table_types_zoomable(self):
-        display     = Display(
-            lock = self.lock, dtype = 0, component = ComponentWithTable(
-                table = {
-                    'types' : [{'type' : 'number', 'zoomable' : True}]
-                }
-            )
-        )
-        display2    = Display(
-            lock = self.lock, dtype = -1, component = AllAllowedComponent()
-        )
-        display2.set(**display.serialize())
-        self.assertEqual(
-            display2.component.table.types[0]['type'], 'number'
-        )
-        self.assertEqual(
-            display2.component.table.types[0]['sortable'], False
-        )
-        self.assertEqual(
-            display2.component.table.types[0]['zoomable'], True
-        )
-
-    def tearDown(self):
-        shutil.rmtree(
-            self.test_folder
-        )
