@@ -1,5 +1,5 @@
 import requests
-from API.backend.exception import NoRetryError, RetryError
+from module_api.API.backend.exception import NoRetryError, RetryError
 
 def api_to_django_execute(org_func):
     """

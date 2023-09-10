@@ -6,7 +6,7 @@ from time import sleep
 # Local import
 import API.lock as lock
 from .decorator import api_to_django_execute, RetryError, NoRetryError
-from API.backend.constants import WAITING_FOR_ERROR_API_SENDING, API_SENDING_TIMEOUT
+from module_api.API.backend.constants import WAITING_FOR_ERROR_API_SENDING, API_SENDING_TIMEOUT
 
 # Auto refreshes data to make sure that the latest data is always
 # used. Asset here will be used as the structure. 

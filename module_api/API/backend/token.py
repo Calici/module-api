@@ -5,8 +5,8 @@ from time import sleep
 # Local import
 from .utils import get_backend_endpoint, get_jwt
 from .utils.decorator import api_to_django_execute
-from API.backend.exception import NoRetryError, RetryError
-from API.backend.constants import WAITING_FOR_ERROR_API_SENDING, SEND_API_RETRY_COUNT_WHEN_STOP, API_SENDING_TIMEOUT
+from module_api.API.backend.exception import NoRetryError, RetryError
+from module_api.API.backend.constants import WAITING_FOR_ERROR_API_SENDING, SEND_API_RETRY_COUNT_WHEN_STOP, API_SENDING_TIMEOUT
 
 
 class TokenModuleBase:

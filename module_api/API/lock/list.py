@@ -6,7 +6,7 @@ from typing import \
     Callable, \
     Union
 
-from API.lock.field import JSONSerializable
+from module_api.API.lock.field import JSONSerializable
 from .field import LockField
 from .section import LockBase
 from .types import FieldBuffer, ArrayOpT

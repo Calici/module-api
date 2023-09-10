@@ -10,7 +10,7 @@ import requests
 # API Libraries
 import API.lock as lock
 import API.logging as log
-from API.backend.utils.utils import get_jwt, get_backend_endpoint
+from module_api.API.backend.utils.utils import get_jwt, get_backend_endpoint
 
 # Runnable to be ran by the lock
 class Runnable:

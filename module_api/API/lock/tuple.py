@@ -1,4 +1,4 @@
-from API.lock.field import JSONSerializable
+from module_api.API.lock.field import JSONSerializable
 from .field import \
     JSONSerializable, \
     LockBase, \

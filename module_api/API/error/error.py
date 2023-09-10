@@ -4,7 +4,7 @@ from typing import IO
 
 # API Import
 import API.lock as lock
-from API.display.component import Message
+from module_api.API.display.component import Message
 
 # Local Imports
 class ErrorBuffer(lock.LockIO):

@@ -8,7 +8,7 @@ from .field import LockField
 from .list import ListField
 from .section import LockSection
 from .type import SpreadKwargs
-from common.other_lib import get_current_time
+from module_api.common.other_lib import get_current_time
 
 # Conditions of the running process
 class LockIOStatusType:

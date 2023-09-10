@@ -1,6 +1,6 @@
 # API Imports
 import API.lock as lock
-from API.lock.type import TypeField
+from module_api.API.lock.type import TypeField
 
 # Library Imports
 from typing import \
