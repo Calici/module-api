@@ -1,6 +1,7 @@
 from setuptools import \
     setup, \
-    find_packages
+    find_packages, \
+    find_namespace_packages
 
 setup(
     name='module-api',
@@ -11,7 +12,7 @@ setup(
     author_email='jo.will@calici.co',
     license='MIT',
     packages=[ 
-      *find_packages("module_api")
+      f"module_api.{pkg_name}" for pkg_name in find_namespace_packages("module_api")
     ],
     install_requires=[
       "annotated-types==0.5.0",
