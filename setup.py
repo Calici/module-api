@@ -11,8 +11,7 @@ setup(
     author_email='jo.will@calici.co',
     license='MIT',
     packages=[ 
-      *find_packages("module_api"), 
-      *find_packages("common")
+      *find_packages("module_api")
     ],
     install_requires=[
       "annotated-types==0.5.0",
