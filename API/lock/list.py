@@ -54,7 +54,8 @@ class ListField(LockField[List[V]], Generic[T, V]):
     
     def set_value(self, value : Union[List[T], ArrayOpT], change : bool = True):
         if isinstance(value, list):
-            self.value = self.validate(value)
+            self.empty()
+            for entry in value: self.append(entry)
         elif isinstance(value, dict):
             self.apply_operation(value)
         self.set_change(change)
@@ -77,6 +78,8 @@ class ListField(LockField[List[V]], Generic[T, V]):
         return [
             entry.serialize() for entry in self.value
         ]
+    def serialize_changes(self) -> List:
+        return self._buffer.data
 
     # List Operations
     def append(self, elm : T):
@@ -103,6 +106,9 @@ class ListField(LockField[List[V]], Generic[T, V]):
     def empty(self):
         self.set([])
         self._buffer.add({"type" : "empty"})
+
+    def flush(self):
+        self._buffer.clear()
 
     def clear_buffer(self):
         self._buffer.clear()

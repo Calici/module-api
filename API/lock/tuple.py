@@ -1,3 +1,4 @@
+from API.lock.field import JSONSerializable
 from .field import \
     JSONSerializable, \
     LockBase, \
@@ -61,6 +62,8 @@ class TupleField(LockField[List[V]], Generic[T, V]):
         return [
             entry.serialize() for entry in self.value
         ]
+    def serialize_changes(self) -> List:
+        return self._buffer.data
     
     def modify(self, pos : int, elm : T):
         self.value[pos].set(elm)
