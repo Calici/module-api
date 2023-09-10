@@ -41,11 +41,13 @@ class LockSection(Section[LockBase], LockBase[Dict[str, Any]]):
         }
     
     def serialize_changes(self) -> dict:
-        return {
-            field_name : field.serialize()
-            for field_name, field in self.items() \
-            if field.is_changed()
-        }
+        build_dict = {}
+        for field_name, field in self.items():
+            if isinstance(field, LockSection):
+                build_dict[field_name] = field.serialize_changes()
+            elif field.is_changed():
+                build_dict[field_name] = field.serialize()
+        return build_dict
     
     def flush(self):
         LockBase.flush(self)
