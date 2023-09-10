@@ -139,6 +139,7 @@ class TestDisplay_v0(unittest.TestCase):
         display.component.messages.append(
             {"title" : "A New Title", "content" : "Yay"}
         )
+        self.assertEqual(len(display.component.messages), 1)
         display.save()
         with open(display.file_path, 'r') as f:
             content = f.read()

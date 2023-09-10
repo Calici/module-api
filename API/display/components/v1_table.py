@@ -75,7 +75,9 @@ class RowListField(lock.ListField[
     ):
         super().__init__(
             lock.TypeField(lock.TupleField, row_types),
-            *args, **kwargs
+            *args, 
+            optimize_merge = False,
+            **kwargs
         )
 
 
@@ -115,7 +117,8 @@ class Header(lock.LockSection):
             for entry in config
         ], [{
             'displayName' : entry['displayName']
-        } for entry in config])
+        } for entry in config
+        ], optimize_merge = False)
 
 class MutableTable(lock.LockSection):
     headers : lock.TupleField[Dict[str, Any], Header]

@@ -23,8 +23,12 @@ class Message(lock.LockSection):
     title = lock.LockField(type = str, default = 'A Message Title')
     content = lock.LockField(type = str, default = '')
 
-def Messages(default : List[Dict[str, Any]] = []):
-    return lock.ListField(lock.SpreadKwargs(Message), default)
+def Messages(
+    default : List[Dict[str, Any]] = [], optimize_merge : bool = False
+):
+    return lock.ListField(
+        lock.SpreadKwargs(Message), default, optimize_merge = optimize_merge
+    )
 
 class ControlConfig(lock.LockSection):
     show_run = lock.LockField(type = bool, default = True)

@@ -6,7 +6,7 @@ from .list import ListField
 from .section import LockSection
 from .file import LockIO
 from .calici import LockHeader, LockStatus
-from .type import TypeField
+from .type import TypeField, SpreadKwargs
 from .tuple import TupleField
 
 class TestField(unittest.TestCase):
@@ -295,6 +295,31 @@ class TestListField(unittest.TestCase):
         entries = field.get()
         last_field = entries.pop()
         self.assertEqual(last_field.serialize(), ["a", "b", "c"])
+
+    def test_list_with_object(self):
+        class SomeObject(LockSection):
+            title =  LockField(str, default = "")
+            content = LockField(str, default = "")
+        field = ListField(SpreadKwargs(SomeObject), optimize_merge = True)
+        field.append({'title' : 'example1', 'content' : 'example2'})
+        field.modify(0, {'title' : 'modified example'})
+        buffer : List = field.serialize_changes() #type: ignore
+        self.assertEqual(
+            buffer[0], 
+            {
+                "type" : "append", 
+                "elm" : {"title" : "example1", "content" : "example2"}
+            }
+        )
+        self.assertEqual(
+            buffer[1], 
+            {
+                "type" : "modify", 
+                "elm" : {"title" : "modified example"}, 
+                'pos' : 0
+            }
+        )
+        self.assertEqual(field.get()[0].title.get(), "modified example")
 
 class TestTupleField(unittest.TestCase):
     def test_initialize(self):

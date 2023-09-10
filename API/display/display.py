@@ -30,8 +30,8 @@ class Display(lock.LockIO, Generic[T]):
     def save_changes_file(self, content : dict):
         fname = self.changes_path.stem
         counter = 0
-        change_path = self.changes_path
         parent_path = self.changes_path.parent
+        change_path = parent_path / f'{fname}_{counter}.json'
         while change_path.exists():
             change_path = parent_path / f'{fname}_{counter}.json'
             counter += 1
@@ -41,7 +41,7 @@ class Display(lock.LockIO, Generic[T]):
         """
             Overriden to save to a changes file as well.
         """
-        build_dict  = self.serialize_changes()
+        build_dict = self.serialize_changes()
         # Write into the changes file as a queue
         self.lockfile.reload()
         is_connected = self.lockfile.status.is_connected.get()
@@ -49,8 +49,7 @@ class Display(lock.LockIO, Generic[T]):
             self._thread_lock.acquire()
             self.save_changes_file(build_dict)
             self._thread_lock.release()
-        else:
-            lock.LockIO._save_file(self)
+        lock.LockIO._save_file(self)
 
     # Set Certain Fields
     def status_complete(self):
