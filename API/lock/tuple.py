@@ -23,12 +23,15 @@ class TupleField(LockField[List[V]], Generic[T, V]):
     def __init__(self, 
         children : List[Callable[[T], V]], 
         default : List[T] = [], 
-        force : bool = True
+        force : bool = True, 
+        optimize_merge : bool = False
     ):
         self._length = len(children)
         self._buffer = FieldBuffer()
         self._children = children
+        self._optimize = optimize_merge
         LockField.__init__(self, list, default, force)
+        self._buffer.clear()
         
     def make_child(self, idx : int, value : T) -> V:
         return self._children[idx](value)
@@ -62,11 +65,15 @@ class TupleField(LockField[List[V]], Generic[T, V]):
         return [
             entry.serialize() for entry in self.value
         ]
-    def serialize_changes(self) -> List:
-        return self._buffer.data
-    
+    #TODO: Correctly implement _optimize mode
+    def serialize_changes(self) -> JSONSerializable:
+        if self._optimize:
+            return self._buffer.data #type: ignore
+        else:
+            return super().serialize_changes()
+
     def modify(self, pos : int, elm : T):
-        self.value[pos].set(elm)
+        self.value[pos].set_value(elm)
         self._buffer.add({
             'type' : 'modify', 'pos' : pos, 'elm' : elm
         })

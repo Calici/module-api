@@ -23,12 +23,15 @@ class ListField(LockField[List[V]], Generic[T, V]):
         child_constructor : Callable[[T], V], 
         default : List[T] = [], 
         max_length : int = 0, 
-        force : bool = False
+        force : bool = False, 
+        optimize_merge : bool = False
     ):
         self._child = child_constructor
         self._max_length = self.validate_max_length(max_length)
         self._buffer = FieldBuffer()
+        self._optimize = optimize_merge
         LockField.__init__(self, list, default, force)
+        self._buffer.clear()
 
     def validate_max_length(self, max_length : int) -> int:
         if max_length < 0:
@@ -78,37 +81,50 @@ class ListField(LockField[List[V]], Generic[T, V]):
         return [
             entry.serialize() for entry in self.value
         ]
-    def serialize_changes(self) -> List:
-        return self._buffer.data
+    #TODO: Correctly implement _optimize mode
+    def serialize_changes(self) -> JSONSerializable:
+        if self._optimize:
+            return self._buffer.data #type: ignore
+        else:
+            return super().serialize_changes()
 
     # List Operations
     def append(self, elm : T):
+        if self._max_length != 0 and len(self) == self._max_length:
+            self.remove(0)
         self.value.append(self.make_child(elm))
         self._buffer.add({
             "type" : "append", 'elm' : elm
         })
+        self.mark_changed()
 
     def reorder(self, newOrder : List[int]):
         self.value = [ self.value[i] for i in newOrder ]
         self._buffer.add({
             "type" : "reorder", 'newOrder' : newOrder
         })
+        self.mark_changed()
 
     def modify(self, pos : int, elm : T):
-        self.value[pos].set(elm)
+        self.value[pos].set_value(elm)
         self._buffer.add({
             "type" : "modify", 'pos' : pos, 'elm' : elm
         })
+        self.mark_changed()
+
     def remove(self, pos : int):
         del self.value[pos]
         self._buffer.add({"type" : "remove", 'pos' : pos})
+        self.mark_changed()
 
     def empty(self):
-        self.set([])
+        self.value = []
         self._buffer.add({"type" : "empty"})
+        self.mark_changed()
 
     def flush(self):
         self._buffer.clear()
+        super().flush()
 
     def clear_buffer(self):
         self._buffer.clear()
