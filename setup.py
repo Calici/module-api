@@ -1,4 +1,6 @@
-from setuptools import setup
+from setuptools import \
+    setup, \
+    find_packages
 
 setup(
     name='module-api',
@@ -9,8 +11,8 @@ setup(
     author_email='jo.will@calici.co',
     license='MIT',
     packages=[ 
-      "module_api.API", 
-      "module_api.common"
+      *find_packages("module_api"), 
+      *find_packages("common")
     ],
     install_requires=[
       "annotated-types==0.5.0",
@@ -23,6 +25,6 @@ setup(
       "PyYAML==6.0",
       "requests==2.31.0",
       "typing_extensions==4.7.1",
-      "urllib3==2.0.3",
+      "urllib3==2.0.3"
     ]
 )
