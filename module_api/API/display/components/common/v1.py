@@ -28,14 +28,14 @@ class Message(lock.LockSection):
 
 def SmartBoxes(
     default : List[Dict[str, Any]] = [], optimize_merge : bool = False
-):
+) -> lock.ListField[Dict[str, Any], SmartBox]:
     return lock.ListField(
         lock.SpreadKwargs(SmartBox), default, optimize_merge = optimize_merge
     )
 
 def Messages(
     default : List[Dict[str, Any]] = [], optimize_merge : bool = False
-):
+) -> lock.ListField[Dict[str, Any], Message]:
     return lock.ListField(
         lock.SpreadKwargs(Message), default, optimize_merge = optimize_merge
     )

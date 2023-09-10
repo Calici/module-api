@@ -25,7 +25,7 @@ class Message(lock.LockSection):
 
 def Messages(
     default : List[Dict[str, Any]] = [], optimize_merge : bool = False
-):
+) -> lock.ListField[Dict[str, Any], Message]:
     return lock.ListField(
         lock.SpreadKwargs(Message), default, optimize_merge = optimize_merge
     )
