@@ -3,7 +3,7 @@ from .common import \
     v1_ControlConfig, \
     v1_TimeField, \
     v1_Messages
-import API.lock as lock
+import module_api.API.lock as lock
 
 class ComponentWithoutTable(lock.LockSection):
     version = lock.LockField(type = str, default = '1.0')

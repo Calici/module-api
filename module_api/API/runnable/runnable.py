@@ -8,8 +8,8 @@ import sys
 import requests
 
 # API Libraries
-import API.lock as lock
-import API.logging as log
+import module_api.API.lock as lock
+import module_api.API.logging as log
 from module_api.API.backend.utils.utils import get_jwt, get_backend_endpoint
 
 # Runnable to be ran by the lock

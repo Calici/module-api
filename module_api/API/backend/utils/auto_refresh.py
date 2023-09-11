@@ -4,7 +4,7 @@ import logging
 from time import sleep
 
 # Local import
-import API.lock as lock
+import module_api.API.lock as lock
 from .decorator import api_to_django_execute, RetryError, NoRetryError
 from module_api.API.backend.constants import WAITING_FOR_ERROR_API_SENDING, API_SENDING_TIMEOUT
 

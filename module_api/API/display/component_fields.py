@@ -1,5 +1,5 @@
 # API Imports
-import API.lock as lock
+import module_api.API.lock as lock
 
 # A base type for table types
 class TableType(lock.LockSection):

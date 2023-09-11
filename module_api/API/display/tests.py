@@ -17,7 +17,7 @@ from .components.v0_no_table import \
 
 import unittest
 import pathlib
-import API.lock as lock
+import module_api.API.lock as lock
 import shutil
 import json
 

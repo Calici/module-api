@@ -1,4 +1,4 @@
-import API.lock as lock
+import module_api.API.lock as lock
 from .common import \
   v0_ProgressField, \
   v0_Messages, \

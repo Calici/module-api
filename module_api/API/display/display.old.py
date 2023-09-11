@@ -6,7 +6,7 @@ import logging
 from typing import TypeVar, Generic
 
 # API Import
-import API.lock as lock
+import module_api.API.lock as lock
 
 # Local Imports
 from .component import BaseComponent

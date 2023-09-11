@@ -3,7 +3,7 @@ from .display import Display
 
 import unittest
 import pathlib
-import API.lock as lock
+import module_api.API.lock as lock
 import shutil
 import json
 

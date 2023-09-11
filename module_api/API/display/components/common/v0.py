@@ -1,4 +1,4 @@
-import API.lock as lock
+import module_api.API.lock as lock
 from typing import \
   List, \
   Dict, \

@@ -7,7 +7,7 @@ from typing import \
     Generic
 
 # API Import
-import API.lock as lock
+import module_api.API.lock as lock
 
 
 T = TypeVar('T', bound = lock.LockSection)

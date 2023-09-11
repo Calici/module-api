@@ -1,6 +1,6 @@
 from __future__ import annotations
 # API Imports
-import API.lock as lock
+import module_api.API.lock as lock
 
 # Library Imports
 from typing import \

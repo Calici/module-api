@@ -1,7 +1,7 @@
 import requests
 from .utils import get_backend_endpoint, get_jwt
 from .utils.decorator import api_to_django_execute
-from module_api.API.backend.constants import API_SENDING_TIMEOUT
+from module_api.API.backend.constants import module_api.API_SENDING_TIMEOUT
 
 class NotificationBase:
     COMPLETE    = 'COMPLETE'
