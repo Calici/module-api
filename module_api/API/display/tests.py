@@ -49,8 +49,12 @@ class TestDisplay_v1(unittest.TestCase):
         display = Display(
             lock = self.lock, dtype = 0, component = v1_ComponentWithoutTable()
         )
-        display.component.messages.append("Hey")
-        display.component.set(progress = {'value' : 0})
+        display.set(
+            component = {
+                'messages' : {'type' : 'append', 'elm' : "Hey"}, 
+                'progress' : {'value' : 0}
+            }
+        )
         display.save()
         with open(display.file_path, 'r') as f:
             content = f.read()
@@ -134,7 +138,11 @@ class TestDisplay_v0(unittest.TestCase):
             self.assertEqual(json.load(f)['dtype'], 0)
     def test_add_log_message_no_table_v0(self):
         display = Display(self.lock, v0_ComponentWithoutTable())
-        display.component.messages.append("A New Title")
+        display.set(
+            component = {
+                'messages' : {'type' : 'append', 'elm' : 'A New Title'}
+            }
+        )
         self.assertEqual(len(display.component.messages), 1)
         display.save()
         with open(display.file_path, 'r') as f:
