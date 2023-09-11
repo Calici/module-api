@@ -22,10 +22,6 @@ class ControlConfig(lock.LockSection):
     show_run = lock.LockField(type = bool, default = True)
     show_stop = lock.LockField(type = bool, default = True)
 
-class Message(lock.LockSection):
-    title = lock.LockField(type = str, default = 'A Message Title')
-    content = lock.LockField(type = str, default = '')
-
 def SmartBoxes(
     default : List[Dict[str, Any]] = [], optimize_merge : bool = False
 ) -> lock.ListField[Dict[str, Any], SmartBox]:
@@ -34,8 +30,9 @@ def SmartBoxes(
     )
 
 def Messages(
-    default : List[Dict[str, Any]] = [], optimize_merge : bool = False
-) -> lock.ListField[Dict[str, Any], Message]:
+    default : List[str] = [], optimize_merge : bool = False
+):
     return lock.ListField(
-        lock.SpreadKwargs(Message), default, optimize_merge = optimize_merge
+        lock.TypeField(lock.LockField, str), default, 
+        optimize_merge = optimize_merge
     )

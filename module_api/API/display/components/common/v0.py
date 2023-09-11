@@ -19,15 +19,12 @@ class MutableTable(lock.LockSection):
 def ProgressField(default : float = 0.0):
   return lock.LockField(float, default)
 
-class Message(lock.LockSection):
-    title = lock.LockField(type = str, default = 'A Message Title')
-    content = lock.LockField(type = str, default = '')
-
 def Messages(
-    default : List[Dict[str, Any]] = [], optimize_merge : bool = False
-) -> lock.ListField[Dict[str, Any], Message]:
+    default : List[str] = [], optimize_merge : bool = False
+):
     return lock.ListField(
-        lock.SpreadKwargs(Message), default, optimize_merge = optimize_merge
+        lock.TypeField(lock.LockField, str), default, 
+        optimize_merge = optimize_merge
     )
 
 class ControlConfig(lock.LockSection):
