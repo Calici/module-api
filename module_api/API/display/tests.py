@@ -80,10 +80,10 @@ class TestDisplay_v1(unittest.TestCase):
                 v1_MutableTable(
                     v1_Header.create_header([{
                         'displayName' : 'Column 1', 
-                        'type' : v1_ZoomableSortable()
+                        'type' : v1_ZoomableSortable(type = 'id')
                     }, {
                         'displayName' : 'Column 2', 
-                        'type' : v1_ZoomableSortable()
+                        'type' : v1_ZoomableSortable(type = 'string')
                     }]),
                     v1_Rows([
                         lock.TypeField(lock.LockField, str), 
@@ -97,6 +97,20 @@ class TestDisplay_v1(unittest.TestCase):
             )
         )
         rows = display.component.table.rows.get()
+        headers = display.component.table.headers.get()
+        self.assertEqual(headers[0].serialize(), {
+            'displayName' : 'Column 1', 
+            'type' : {
+                'type' : 'id', 'zoomable' : False, 'sortable' : False
+            }
+        })        
+        self.assertEqual(headers[1].serialize(), {
+            'displayName' : 'Column 2', 
+            'type' : {
+                'type' : 'string', 'zoomable' : False, 'sortable' : False
+            }
+        })
+        
         for i in range(len(rows)):
             row = rows[i].get()
             for j in range(len(row)):

@@ -108,12 +108,17 @@ class Header(lock.LockSection):
             TableTypeButtonAPII, 
             TableTypeButtonRedirectI
         ]
+    @staticmethod 
+    def create_header_with_v(type):
+        def v_spread(v):
+            return Header(type, **v)
+        return v_spread
     @staticmethod
     def create_header(
         config : List[HeaderT]
     ) -> lock.TupleField[Dict[str, Any], Header]:
         return lock.TupleField([
-            lambda v : Header(entry['type'], **v)
+            Header.create_header_with_v(entry['type'])
             for entry in config
         ], [{
             'displayName' : entry['displayName']
