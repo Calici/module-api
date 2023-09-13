@@ -26,3 +26,8 @@ class NoRetryError(Exception):
     def __str__(self):
         return self.message or str(self.obj)
         
+class APICallError(Exception):
+    def __init__(self, msg : str):
+        self.msg = msg
+    def __str__(self):
+        return self.msg

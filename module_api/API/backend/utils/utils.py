@@ -12,7 +12,10 @@ def get_jwt() -> str:
     return token
 
 def get_backend_endpoint() -> str:
+    """
+        Returns the backend endpoint guaranteeing a slash in the of the URL
+    """
     endpoint = os.environ.get('DJANGO_API_ENDPOINT')
     if endpoint is None:
         raise RuntimeError("DJANGO_API_ENDPOINT has not been set")
-    return endpoint
+    return endpoint if endpoint[-1] == '/' else endpoint + '/'

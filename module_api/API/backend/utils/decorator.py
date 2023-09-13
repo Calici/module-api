@@ -1,22 +1,57 @@
 import requests
-from module_api.API.backend.exception import NoRetryError, RetryError
+from module_api.API.backend.exception import \
+    NoRetryError, \
+    RetryError, \
+    APICallError
+from module_api.API.backend.constants import \
+    WAITING_FOR_ERROR_API_SENDING
+from requests.exceptions import Timeout, ConnectionError
+from typing import \
+    Callable
+import time
 
-def api_to_django_execute(org_func):
+def run_query(
+    func : Callable[..., requests.Response], *args, **kwargs
+) -> requests.Response:
     """
-    Using
-    @api_execute
-    def function_name(...)
+        Perform the query func with the given parameters *args, **kwargs
     """
-    def f_wrapper(*args, **kwargs):
-        try:
-            post_req = org_func(*args, **kwargs)
-            if post_req.status_code == 200:
-                return post_req
-            elif post_req.status_code == 502:
-                # Timeout connecting from nginx to django
-                raise RetryError(post_req)
-            else: 
-                raise NoRetryError(post_req)
-        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as ex:
-            raise RetryError('Connection error or timeout occurred')
-    return f_wrapper
+    try:
+        response = func(*args, **kwargs)
+        if response.status_code == 200:
+            return response
+        elif response.status_code == 502:
+            # Backend Restarting Error (NGINX)
+            raise RetryError(response)
+        else:
+            raise NoRetryError(response)
+    except (ConnectionError, Timeout):
+        raise RetryError("Connection error or timeout occurred")
+
+def backend_api_call(
+    retry_count : int = 5, 
+    retry_interval : float = WAITING_FOR_ERROR_API_SENDING
+) -> Callable[
+    [Callable[..., requests.Response]], Callable[..., requests.Response]
+]:
+    """
+        Usage : 
+        @backend_api_call(retry_count = 5, retry_interval = ...)
+        def api_call_function( ... ) -> requests.Response
+            ...
+        This decorator schedules resend of requests for failed requests.
+        Retries the request for retry_count times with retry_interval time.
+    """
+    def decorator(func : Callable[..., requests.Response]):
+        def decorated_function(*args, **kwargs):
+            for _ in range(retry_count):
+                try:
+                    return run_query(func, *args, **kwargs)
+                except RetryError:
+                    pass
+                except NoRetryError:
+                    break
+                time.sleep(retry_interval)
+            raise APICallError('API Call have failed')
+        return decorated_function
+    return decorator
