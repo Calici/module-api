@@ -1,8 +1,12 @@
 import module_api.API.lock as lock
 from typing import \
   List, \
-  Dict, \
-  Any
+  Union, \
+  Literal
+
+DisplayStatus = Union[
+    Literal['INIT'], Literal['COMPLETE'], Literal['STOP'], Literal['RUNNING']
+]
 
 class TableType(lock.LockSection):
     type = lock.LockField(type = str, default = "")

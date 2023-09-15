@@ -3,7 +3,13 @@ import datetime
 from typing import \
     List, \
     Dict, \
-    Any
+    Any, \
+    Union, \
+    Literal
+
+DisplayStatus = Union[
+    Literal['INIT'], Literal['COMPLETE'], Literal['STOP'], Literal['RUNNING']
+]
 
 class ProgressField(lock.LockSection):
     value = lock.LockField(type = float, default = 0.0)
