@@ -1,6 +1,5 @@
 import module_api.API.lock as lock
 from module_api.API.backend.constants import \
-    WAITING_FOR_ERROR_API_SENDING, \
     API_SENDING_TIMEOUT
 from .decorator import backend_api_call
 import requests

@@ -8,7 +8,6 @@ from typing import \
   Literal, \
   TypeVar, \
   Generic, \
-  Type, \
   Dict, \
   Callable
 import shutil

@@ -5,7 +5,9 @@ from module_api.API.backend.exception import \
     APICallError
 from module_api.API.backend.constants import \
     WAITING_FOR_ERROR_API_SENDING
-from requests.exceptions import Timeout, ConnectionError
+from requests.exceptions import \
+    Timeout, \
+    ConnectionError
 from typing import \
     Callable
 import time
