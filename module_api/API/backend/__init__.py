@@ -1,2 +1,10 @@
-from .module import Module, ModuleResult, ModuleSection, ModuleStatus
-from .notification import Notification
+from .module import \
+  ModuleAPI, \
+  ModuleResult, \
+  ModuleSection, \
+  ModuleStatus
+from .notification import \
+  NotificationAPI, \
+  NotificationStatus
+from .token import \
+  TokenAPI
