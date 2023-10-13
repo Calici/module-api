@@ -19,7 +19,8 @@ from .common import \
     v1_TimeField, \
     ControlConfig, \
     Messages, \
-    DisplayStatus
+    DisplayStatus, \
+    ZoomableField
     
 class QueryI(lock.LockSection):
     method = lock.LockField(type = str, default = 'GET')
@@ -29,7 +30,7 @@ class QueryI(lock.LockSection):
 
 class TableType_ZoomableSortableI(lock.LockSection):
     type = lock.LockField(type = str, default = "")
-    zoomable = lock.LockField(type = bool, default = False)
+    zoomable = ZoomableField()
     sortable = lock.LockField(type = bool, default = False)
 
 class TableTypeImg(lock.LockSection):

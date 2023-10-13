@@ -12,7 +12,8 @@ from .v0 import \
 from .same import \
   Messages, \
   ControlConfig, \
-  DisplayStatus
+  DisplayStatus, \
+  ZoomableField
 
 __all__ = [
   'v1_ProgressField', 
@@ -24,5 +25,6 @@ __all__ = [
   'v0_ProgressField',
   'Messages', 
   'ControlConfig', 
-  'DisplayStatus'
+  'DisplayStatus', 
+  'ZoomableField'
 ]
