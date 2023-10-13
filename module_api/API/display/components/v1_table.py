@@ -15,13 +15,12 @@ from typing import \
 
 from .common import \
     v1_ProgressField, \
-    v1_ControlConfig, \
     v1_SmartBoxes, \
     v1_TimeField, \
-    v1_Messages, \
-    v1_DisplayStatus
+    ControlConfig, \
+    Messages, \
+    DisplayStatus
     
-
 class QueryI(lock.LockSection):
     method = lock.LockField(type = str, default = 'GET')
     requestType = lock.LockField(type = str, default = 'blob')
@@ -155,9 +154,9 @@ class MutableTable(lock.LockSection):
 class ComponentWithTable(lock.LockSection):
     version = lock.LockField(type = str, default = '1.0')
     progress = v1_ProgressField()
-    messages = v1_Messages()
-    status = lock.LockField[v1_DisplayStatus](str, default = 'INIT')
-    controls = v1_ControlConfig()
+    messages = Messages()
+    status = lock.LockField[DisplayStatus](str, default = 'INIT')
+    controls = ControlConfig()
     time = v1_TimeField()
     smartboxes = v1_SmartBoxes()
     table : MutableTable
