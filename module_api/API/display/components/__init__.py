@@ -11,22 +11,18 @@ from .v1_no_table import \
   ComponentWithoutTable as v1_ComponentWithoutTable
 from .common import \
   v1_SmartBoxes, \
-  v1_Messages, \
   v1_ProgressField, \
-  v1_ControlConfig, \
   v1_TimeField, \
   v1_SmartBox, \
-  v0_ControlConfig, \
-  v0_Messages, \
   v0_MutableTable, \
-  v0_ProgressField
+  v0_ProgressField, \
+  Messages, \
+  ControlConfig
 
 __all__ = [
   # Version 0
   'v0_ComponentWithoutTable', 
   'v0_ComponentWithTable',
-  'v0_ControlConfig', 
-  'v0_Messages', 
   'v0_MutableTable', 
   'v0_ProgressField',
 
@@ -35,11 +31,11 @@ __all__ = [
   'v1_Rows', 
   'v1_MutableTable', 
   'v1_SmartBoxes', 
-  'v1_Messages', 
   'v1_ProgressField', 
-  'v1_ControlConfig', 
   'v1_TimeField', 
   'v1_SmartBox', 
   'v1_ComponentWithoutTable', 
-  'v1_ComponentWithTable'
+  'v1_ComponentWithTable', 
+  'Messages', 
+  'ControlConfig'
 ]
