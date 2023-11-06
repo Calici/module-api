@@ -18,7 +18,6 @@ class LockIO(LockSection):
         self.file_path = pathlib.Path(file_path)
         new_file = not self.file_path.exists()
         super().__init__(**kwargs)
-        self.process    = None
         # Prevent multi thread error
         self._thread_lock   = threading.Lock()
         # File IO
