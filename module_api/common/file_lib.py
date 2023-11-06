@@ -254,7 +254,7 @@ def append_list_str_to_file(file_path: Union[Path, str], data: List[str], b_remo
             f_dest.write(item)
 
 
-def create_zip(src: Union[Path, str], dst: Union[Path, str] = None):
+def create_zip(src: Union[Path, str], dst: Union[Path, str] = ""):
     """Create a zip file
 
     Args:
@@ -278,7 +278,7 @@ def create_zip(src: Union[Path, str], dst: Union[Path, str] = None):
     zf.close()
 
 
-def extract_zip(src: Union[Path, str], dst: Union[Path, str] = None):
+def extract_zip(src: Union[Path, str], dst: Union[Path, str, None] = ""):
     """Create a zip file
 
     Args:
@@ -392,7 +392,7 @@ def get_current_dir(path: Union[Path, str]) -> Path:
     return __convert_path(path).parent
 
 
-def process_files_in_folder(*args, folder: Union[Path, str] = None, func=None, pattern: str = '*', level=0):
+def process_files_in_folder(*args, folder: Union[Path, str] = "", func=None, pattern: str = '*', level=0):
     """
 
     Args:

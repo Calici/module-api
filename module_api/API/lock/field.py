@@ -51,7 +51,7 @@ class LockBase(BaseField[T], Generic[T]):
     def set(self, value : Any):
         ...
     @abstractmethod
-    def validate(self, value: T | str) -> T:
+    def validate(self, value: Union[T, str]) -> T:
         ...
 
 """
