@@ -1,4 +1,5 @@
 # Python Libraries
+from __future__ import annotations
 import os
 from typing_extensions import \
     Tuple, \
@@ -17,6 +18,7 @@ from module_api.API.backend.utils.utils import get_jwt, get_backend_endpoint
 
 # Runnable to be ran by the lock
 T = TypeVar('T', bound = lock.CaliciLock)
+V = TypeVar('V')
 class Runnable(Generic[T]):
     lock_type : Type[T]
     REQUIRED_ATTRIBUTES  = [
@@ -158,7 +160,7 @@ class Runnable(Generic[T]):
 
     # Does argument parsing
     @staticmethod
-    def create(Runnable : Type):
+    def create(Runnable : Type[V]) -> V:
         parser  = argparse.ArgumentParser()
         parser.add_argument(
             '--lock', type = str, help = 'path to the lock file'
