@@ -1,11 +1,14 @@
 # Python Libraries
 import os
-from typing_extensions import Tuple, Type
+from typing_extensions import \
+    Tuple, \
+    Type, \
+    Generic, \
+    TypeVar
 import pathlib
 import argparse
 import logging
 import sys
-import requests
 
 # API Libraries
 import module_api.API.lock as lock
@@ -13,8 +16,9 @@ import module_api.API.logging as log
 from module_api.API.backend.utils.utils import get_jwt, get_backend_endpoint
 
 # Runnable to be ran by the lock
-class Runnable:
-    lock_type   : Type[lock.CaliciLock] = lock.CaliciLock
+T = TypeVar('T', bound = lock.CaliciLock)
+class Runnable(Generic[T]):
+    lock_type : Type[T]
     REQUIRED_ATTRIBUTES  = [
         'init', 're_init', 'run', 'stop'
     ]
@@ -25,21 +29,23 @@ class Runnable:
     """
     def __init__(self, lock_path : pathlib.Path, logger_name : str = __file__):
         # Append the parent path
-        sys.path.append(pathlib.Path(__file__).parent)
+        sys.path.append(str(pathlib.Path(__file__).parent))
         # Check if it is currently debug mode
-        DEBUG       = os.environ.get('DEBUG', True)
+        DEBUG = os.environ.get('DEBUG', True)
+        if isinstance(DEBUG, str):
+            DEBUG = DEBUG == 'true'
         # Init checks
         self.__init_checks()
         # Load the lock file
-        self.lock                       = self.__load_lockfile(lock_path)
+        self.lock = self.__load_lockfile(lock_path)
         # Setup logging
         self.logger, self.logger_name   = self.__setup_logging(
             self.lock, logger_name, DEBUG
         )
         self.debug  = DEBUG
 
-    def __load_lockfile(self, path : pathlib.Path) -> lock.CaliciLock:
-        Lock    = self.lock_type
+    def __load_lockfile(self, path : pathlib.Path) -> T:
+        Lock = self.lock_type
         if Lock is None:
             raise ValueError('Runnable lock_type cannot be none')
         elif not issubclass(Lock, lock.CaliciLock):
@@ -62,8 +68,8 @@ class Runnable:
         stream_handler.setFormatter(log.VerboseColourfulFormatter())
         logger.addHandler(stream_handler)
         # File based logging
-        log_path    = lock.header.log_path
-        if log_path and not log_path.is_dir():
+        log_path    = lock.header.log_path.get()
+        if not log_path.is_dir():
             file_handler    = log.FileLogger(log_path, debug_level)
             file_handler.setFormatter(log.VerboseBWFormatter())
             logger.addHandler(file_handler)
