@@ -26,6 +26,6 @@ setup(
       "requests==2.31.0",
       "typing_extensions==4.8.0",
       "urllib3==2.0.7", 
-      "pypharmaco @ git+https://github.com/calici/pypharmaco@v0.0.1"
+      "pypharmaco @ https://github.com/Calici/pypharmaco/releases/download/v0.0.1/pypharmaco-0.0.1.whl"
     ]
 )
