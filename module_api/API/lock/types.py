@@ -4,8 +4,8 @@ from typing_extensions import \
     List, \
     Union, \
     Any, \
-    overload
-from typing_extensions_extensions import TypedDict
+    overload, \
+    TypedDict
 
 class AppendT(TypedDict):
     type : Literal['append']
