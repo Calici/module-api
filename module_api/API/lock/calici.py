@@ -7,7 +7,7 @@ from .file import LockIO
 from .field import LockField
 from .list import ListField
 from .section import LockSection
-from common.other_lib import get_current_time
+from module_api.common.other_lib import get_current_time
 from .utils import recursive_merge
 from .type import SpreadKwargs
 from typing import Dict, Any
