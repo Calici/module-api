@@ -2,7 +2,7 @@
 from __future__ import annotations
 from pypharmaco.structure import Section
 from .field import LockBase
-from typing import \
+from typing_extensions import \
     Dict, \
     Any
 

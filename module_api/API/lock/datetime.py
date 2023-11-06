@@ -1,5 +1,5 @@
 from .field import LockField
-from typing import Union
+from typing_extensions import Union
 import datetime
 
 class DateTimeField(LockField[datetime.datetime]):

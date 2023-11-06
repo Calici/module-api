@@ -1,7 +1,7 @@
 # Library Imports
 from __future__ import annotations
 from datetime import datetime
-from typing import \
+from typing_extensions import \
     Any, \
     List, \
     Type, \

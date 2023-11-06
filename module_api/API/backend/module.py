@@ -3,7 +3,7 @@ import module_api.API.lock as lock
 import pathlib
 
 from .utils import get_backend_endpoint, get_jwt, RequestAutoRefresh
-from typing import \
+from typing_extensions import \
   Union, \
   Literal, \
   TypeVar, \

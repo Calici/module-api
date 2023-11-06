@@ -4,7 +4,7 @@ from module_api.API.backend.constants import \
 from .decorator import backend_api_call
 import requests
 import logging
-from typing import \
+from typing_extensions import \
     Dict, \
     Any
 

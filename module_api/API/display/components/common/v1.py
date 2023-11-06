@@ -1,6 +1,6 @@
 import module_api.API.lock as lock
 import datetime
-from typing import \
+from typing_extensions import \
     List, \
     Dict, \
     Any

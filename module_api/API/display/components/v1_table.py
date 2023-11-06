@@ -3,7 +3,7 @@ from __future__ import annotations
 import module_api.API.lock as lock
 
 # Library Imports
-from typing import \
+from typing_extensions import \
     List, \
     Union, \
     Callable, \

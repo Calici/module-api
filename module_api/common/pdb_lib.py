@@ -1,6 +1,6 @@
 
 import pathlib
-from typing import Union, List
+from typing_extensions import Union, List
 from .file_lib import load_file_to_list_str
 
 

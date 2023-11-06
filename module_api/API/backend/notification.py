@@ -2,7 +2,7 @@ import requests
 from .utils import get_backend_endpoint, get_jwt
 from .utils.decorator import backend_api_call
 from module_api.API.backend.constants import API_SENDING_TIMEOUT
-from typing import \
+from typing_extensions import \
     Literal, \
     Union
 

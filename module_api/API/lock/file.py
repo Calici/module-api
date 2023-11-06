@@ -3,7 +3,7 @@ import yaml
 import pathlib
 import threading
 import logging
-from typing import IO
+from typing_extensions import IO
 import time
 
 # Local Imports

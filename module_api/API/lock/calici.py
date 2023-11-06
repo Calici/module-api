@@ -10,7 +10,7 @@ from .section import LockSection
 from module_api.common.other_lib import get_current_time
 from .utils import recursive_merge
 from .type import SpreadKwargs
-from typing import Dict, Any
+from typing_extensions import Dict, Any
 
 # Conditions of the running process
 class LockIOStatusType:

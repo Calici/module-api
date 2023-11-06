@@ -1,7 +1,7 @@
 import requests
 import json
 import pathlib
-from typing import List, Union
+from typing_extensions import List, Union
 from module_api.common.constants import WsgiErrorCode
 class HttpException(Exception):
     def __init__(self, status : int, msg : Union[dict, str]):

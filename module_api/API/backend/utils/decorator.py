@@ -8,7 +8,7 @@ from module_api.API.backend.constants import \
 from requests.exceptions import \
     Timeout, \
     ConnectionError
-from typing import \
+from typing_extensions import \
     Callable
 import time
 

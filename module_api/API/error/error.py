@@ -1,6 +1,6 @@
 # Library Import
 import json
-from typing import IO
+from typing_extensions import IO
 
 # API Import
 import module_api.API.lock as lock

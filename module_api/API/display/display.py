@@ -1,8 +1,8 @@
 # Library stuff
 import pathlib
 import json
-from typing import IO
-from typing import \
+from typing_extensions import IO
+from typing_extensions import \
     TypeVar, \
     Generic
 

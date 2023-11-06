@@ -3,7 +3,7 @@ import module_api.API.lock as lock
 from module_api.API.lock.type import TypeField
 
 # Library Imports
-from typing import \
+from typing_extensions import \
     List, \
     Union, \
     Callable, \

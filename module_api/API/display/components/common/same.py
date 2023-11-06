@@ -1,4 +1,4 @@
-from typing import \
+from typing_extensions import \
   Literal, \
   List
 import module_api.API.lock as Lock

@@ -1,5 +1,5 @@
 import pathlib
-from typing import List, Union
+from typing_extensions import List, Union
 
 def create_directories(
     workdir : pathlib.Path, 

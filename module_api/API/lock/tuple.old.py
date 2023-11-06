@@ -2,7 +2,7 @@ from .field import \
     JSONSerializable, \
     LockBase, \
     LockField
-from typing import \
+from typing_extensions import \
     List, \
     Generic, \
     TypeVar, \

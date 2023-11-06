@@ -1,11 +1,11 @@
-from typing import \
+from typing_extensions import \
     Literal, \
     Tuple, \
     List, \
     Union, \
     Any, \
     overload
-from typing_extensions import TypedDict
+from typing_extensions_extensions import TypedDict
 
 class AppendT(TypedDict):
     type : Literal['append']

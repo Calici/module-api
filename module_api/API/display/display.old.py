@@ -1,9 +1,9 @@
 # Library Import
 import pathlib
 import json
-from typing import IO
+from typing_extensions import IO
 import logging
-from typing import TypeVar, Generic
+from typing_extensions import TypeVar, Generic
 
 # API Import
 import module_api.API.lock as lock

@@ -1,6 +1,6 @@
 # Python Libraries
 import os
-from typing import Tuple, Type
+from typing_extensions import Tuple, Type
 import pathlib
 import argparse
 import logging

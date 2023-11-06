@@ -1,6 +1,6 @@
 import threading
 from multiprocessing import Process
-from typing import List
+from typing_extensions import List
 
 def split_array(arr:List, num:int=None, size:int=1, b_order = False):
     # sourcery skip: extract-method, remove-unnecessary-else

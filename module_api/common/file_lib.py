@@ -8,7 +8,7 @@ import shutil
 import zipfile
 from fnmatch import fnmatch
 from pathlib import Path
-from typing import Union, List
+from typing_extensions import Union, List
 import logging
 import datetime
 from pydantic import BaseModel
