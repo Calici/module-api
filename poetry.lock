@@ -271,18 +271,17 @@ typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
 
 [[package]]
 name = "pypharmaco"
-version = "0.0.0"
+version = "0.0.1"
 description = "A Python Package for Pharmaco Net utilities that developer uses"
 optional = false
 python-versions = "*"
-files = []
-develop = false
+files = [
+    {file = "pypharmaco-0.0.1-py3-none-any.whl", hash = "sha256:af9d617d995e7f483e1da12faa29ad6966b34dd1d7d3b2f108317d5ca0160d54"},
+]
 
 [package.source]
-type = "git"
-url = "https://github.com/calici/pypharmaco"
-reference = "v0.0.1"
-resolved_reference = "933f5bac6d58bdb37b735e1e117d5786057ec7fe"
+type = "url"
+url = "https://github.com/Calici/pypharmaco/releases/download/v0.0.1/pypharmaco-0.0.1-py3-none-any.whl"
 
 [[package]]
 name = "pytz"
@@ -406,4 +405,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "98454fdb9dbba00672abfdfa71594ecbe8a01414b164108af9131a3efba2b3fb"
+content-hash = "119c88f11307fd96f98384a5f6fb5d7cd2035ca622d07173a9c6b5aa768f6e5d"
