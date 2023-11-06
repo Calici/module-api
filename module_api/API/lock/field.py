@@ -10,7 +10,8 @@ from typing import \
     TypeVar, \
     Dict
 from pypharmaco.structure.field import \
-    Field
+    Field, \
+    BaseField
 from abc import \
     abstractmethod
 
@@ -23,7 +24,7 @@ JSONSerializable    = Union[
     LockBase -> implements the changes API
 """
 T = TypeVar("T")
-class LockBase(Field[T], Generic[T]):
+class LockBase(BaseField[T], Generic[T]):
     def __init__(self):
         self._changed = False
     def is_changed(self) -> bool:
@@ -65,7 +66,7 @@ class LockBase(Field[T], Generic[T]):
     get_value() -> get the value
     set(value or kwargs) -> set value
 """
-class LockField(LockBase[T], Generic[T]):
+class LockField(Generic[T], Field[T], LockBase[T]):
     RETURN_RAW_FIELDS = (
         int, str, bool, float, list, dict, datetime
     )
