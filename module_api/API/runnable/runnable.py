@@ -96,7 +96,7 @@ class Runnable(Generic[T]):
         lock    = self.lock
 
         # Now call user implemented functions
-        lock_init   = self.lock.status.initialized
+        lock_init   = self.lock.status.initialized.get()
         # Reinit the module if it has nver been initialized and only re init if
         # it has been initialized
         if lock_init:
