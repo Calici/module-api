@@ -39,6 +39,7 @@ class NotificationAPI:
                 'type' : type, 
                 'module' : self.module_id
             }, 
+            headers = self.headers,
             timeout = timeout
         )
     
