@@ -1,8 +1,7 @@
 import unittest
 from module_api.API.lock import CaliciLock
+from module_api.API.test import generate_test_fd
 from .runnable import Runnable
-import pathlib
-import os
 import shutil
 
 class TestLock(CaliciLock):
@@ -13,10 +12,7 @@ class TestRunnable(Runnable[TestLock]):
 
 class TestRun(unittest.TestCase):
     def test_if_running(self):
-        tmp_fd = pathlib.Path('tmp/test_runnable').resolve()
-        if not tmp_fd.is_dir():
-            tmp_fd.mkdir(parents = True, exist_ok = True)
-        os.chdir(tmp_fd)
-        lock_file = CaliciLock(pathlib.Path('tmp_file'))
-        runnable = TestRunnable(lock_path = lock_file.file_path)
-        shutil.rmtree(tmp_fd)
+        with generate_test_fd() as tmp_fd:
+            lock_file = CaliciLock(tmp_fd / 'tmp_file')
+            runnable = TestRunnable(lock_path = lock_file.file_path)
+            shutil.rmtree(tmp_fd)
