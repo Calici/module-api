@@ -431,3 +431,40 @@ def is_binary_file(file_path: Union[Path, str]):
         fin.close()
 
     return ret
+
+def copy_folder(src: Union[Path, str], dest: Union[Path, str], b_overwrite: bool = True, ignore_types: List[str] = None, include_types: List[str] = None, ignore_folder: List[str] = None, b_recursive=True):
+    """Copy src/* to dest/*
+
+    Args:
+        src (_type_): _description_
+        dest (_type_): _description_
+        b_overwrite (bool, optional): Overwrite?. Defaults to True.
+        ignore_types (list, optional): Ignore types. Example: ['chm','html']. Defaults to None.
+        include_types (list, optional): Include types. Example: ['chm','html']. Defaults to None.
+        ignore_folder (list, optional): Ignore folders. Example: folder1. Defaults to None.
+        b_recursive (bool, optional): Copy subfolder's contents.. Defaults to True.
+
+    Raises:
+        RuntimeError: _description_
+    """
+    src = __convert_path(src, True)
+    dest = __convert_path(dest)
+
+    if src.is_file() or src.is_symlink():
+        return
+    dest.mkdir(parents=True, exist_ok=True)
+    for f in src.glob('*'):
+        if f.is_dir():
+            if ignore_folder and f.name in ignore_folder:
+                continue
+            if b_recursive:
+                copy_folder(f, dest / f.name, b_overwrite=b_overwrite, ignore_types=ignore_types, include_types=include_types, ignore_folder=ignore_folder, b_recursive=b_recursive
+                            )
+            else:
+                (dest / f.name).mkdir(parents=True, exist_ok=True)
+        else:
+            file_type = f.suffix.lstrip('.')
+            if ignore_types and file_type in ignore_types:
+                continue
+            if (include_types and f.suffix.lstrip('.') in include_types) or not include_types:
+                shutil.copy(f, dest)
