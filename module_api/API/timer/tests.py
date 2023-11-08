@@ -1,5 +1,5 @@
 import unittest
-from timer import Timer
+from .timer import Timer
 
 class TimerTest(unittest.TestCase):
     def assert_timer_float(self, timers : dict):

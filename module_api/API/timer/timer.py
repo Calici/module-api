@@ -1,20 +1,31 @@
 import time
 import logging
+from typing_extensions import \
+    Dict, \
+    TypedDict, \
+    Union, \
+    NotRequired
 # TIMER
 # start(timer_name : str) -> start a timer with name timer_name
 # end(timer_name : str) -> end a timer with name timer_name
 # remove(timer_name : str) -> remove a timer with name timer_name
 # get_time(timer_name : str) -> get the time delta for timer timer_name
 # sum() -> get the total time
+TimerT = TypedDict("TimerT", {
+    "start" : float, 
+    "end" : Union[float, None],
+    'delta' : NotRequired[float]
+})
+
 class Timer:
     def __init__(self): 
-        self.timers     = {}
+        self.timers : Dict[str, TimerT] = {}
     def start(self, timer_name : str): 
         try:
             lol     = self.timers[timer_name]
             raise ValueError(f'{timer_name} exists')
         except KeyError:
-            self.timers[timer_name]     = {
+            self.timers[timer_name] = {
                 'start' : time.time(), 'end' : None
             }
 
@@ -24,8 +35,11 @@ class Timer:
         except KeyError:
             start_time  = self.timers[timer_name]['start']
             end_time    = self.timers[timer_name]['end']
-            self.timers[timer_name]['delta'] = end_time - start_time
-            return self.timers  [timer_name]['delta']
+            if not end_time: 
+                raise RuntimeError("end_time is not defined")
+            delta = end_time - start_time
+            self.timers[timer_name]['delta'] = delta
+            return delta
 
     def end(self, timer_name : str) -> float:
         try:
@@ -42,11 +56,9 @@ class Timer:
             raise KeyError(f'No such timer {timer_name} or timer not ended')
     
     def sum(self) -> float:
-        return sum([
-            v.get('delta') if v['delta'] is not None else 0 for k, v in self.timers.items()
-        ])
+        return sum([ v.get('delta', 0) for k, v in self.timers.items() ])
 
-    def remove(self, timer_name : str) -> float:
+    def remove(self, timer_name : str):
         try: 
             self.timers.pop(timer_name)
         except KeyError: 

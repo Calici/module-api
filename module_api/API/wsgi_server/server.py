@@ -92,8 +92,15 @@ class Server:
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, requests.exceptions.TooManyRedirects ) as ex :
             resp = requests.Response()
             resp.status_code = 500
-            resp.headers = {'Content-type' : 'application/json'},
-            resp._content = str.encode(json.dumps({'error' : "Server is not ready", 'error_code' : WsgiErrorCode.NETWORK_ERROR}))
+            resp.headers['Conten-type'] = 'application/json'
+            resp._content = str.encode(
+                json.dumps(
+                    {
+                        'error' : "Server is not ready", 
+                        'error_code' : WsgiErrorCode.NETWORK_ERROR
+                    }
+                )
+            )
             return resp
         
 

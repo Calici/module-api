@@ -1,8 +1,11 @@
 import pathlib
-
+from typing_extensions import \
+    Union
 # This parses the params into functions that we can use
 class Params:
-    def __init__(self, params : dict = None, dirs : dict = None):
+    def __init__(self, 
+        params : Union[dict, None] = None, dirs : Union[dict, None] = None
+    ):
         self._params    = params if params is not None else {}
         self._dirs      = dirs if dirs is not None else {}
 
