@@ -34,7 +34,7 @@ class RequestAutoRefresh(lock.LockSection):
     @backend_api_call(retry_count = 5)
     def __get_data(self, 
         timeout : int = API_SENDING_TIMEOUT
-) -> requests.Response:
+    ) -> requests.Response:
         return requests.get(
             url = self._endpoint, 
             headers = self._header,

@@ -9,11 +9,13 @@ from requests.exceptions import \
     Timeout, \
     ConnectionError
 from typing_extensions import \
-    Callable
+    Callable, \
+    ParamSpec
 import time
 
+P = ParamSpec('P')
 def run_query(
-    func : Callable[..., requests.Response], *args, **kwargs
+    func : Callable[P, requests.Response], *args : P.args, **kwargs : P.kwargs
 ) -> requests.Response:
     """
         Perform the query func with the given parameters *args, **kwargs

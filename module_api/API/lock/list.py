@@ -77,7 +77,7 @@ class ListField(LockField[List[V]], Generic[T, V]):
         else:
             logging.warning("Invalid Dict {0}".format(str(value)))
     
-    def serialize(self) -> List[JSONSerializable]:
+    def serialize(self) -> List[T]:
         return [
             entry.serialize() for entry in self.value
         ]
