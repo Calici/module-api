@@ -14,7 +14,6 @@ import sys
 # API Libraries
 import module_api.API.lock as lock
 import module_api.API.logging as log
-from module_api.API.backend.utils.utils import get_jwt, get_backend_endpoint
 
 # Runnable to be ran by the lock
 T = TypeVar('T', bound = lock.CaliciLock)
@@ -50,14 +49,14 @@ class Runnable(Generic[T]):
         Lock = self.lock_type
         if Lock is None:
             raise ValueError('Runnable lock_type cannot be none')
-        elif not issubclass(Lock, lock.CaliciLock):
+        elif not issubclass(Lock, T):
             raise ValueError(
                 'Runnable lock_type have to be a subclass of CaliciLock'
             )
         return Lock(path)
 
     def __setup_logging(self,
-        lock : lock.CaliciLock, logger_name : str = __file__,
+        lock : T, logger_name : str = __file__,
         debug : bool = True
     ) -> Tuple[logging.Logger, str]:
         # Modify debug level base on debug variable
@@ -122,33 +121,25 @@ class Runnable(Generic[T]):
         self.exception_handler(e)
 
     # Initializes the object for the first time (First Run init)
-    def init(self,
-        lock : lock.CaliciLock, debug : bool = True
-    ):
+    def init(self, lock : T, debug : bool = True):
         raise NotImplementedError(
             'init() function have to be implemented'
         )
 
     # Initializes the object subsequently, opened while running, etc.
-    def re_init(self,
-        lock : lock.CaliciLock, debug : bool = True
-    ):
+    def re_init(self, lock : T, debug : bool = True):
         raise NotImplementedError(
             're_init() function have to be implemented'
         )
 
     # Run the runnable
-    def run(self,
-        lock : lock.CaliciLock, debug : bool = True
-    ):
+    def run(self, lock : T, debug : bool = True):
         raise NotImplementedError(
             'run() function have to be implemented'
         )
 
     # Run after raising an instance of StopRunnable
-    def stop(self,
-        lock : lock.CaliciLock, debug : bool = True
-    ):
+    def stop(self, lock : T, debug : bool = True):
         raise NotImplementedError(
             'stop() function have to be implemented'
         )
