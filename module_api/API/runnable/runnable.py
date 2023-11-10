@@ -49,7 +49,7 @@ class Runnable(Generic[T]):
         Lock = self.lock_type
         if Lock is None:
             raise ValueError('Runnable lock_type cannot be none')
-        elif not issubclass(Lock, T):
+        elif not issubclass(Lock, lock.CaliciLock):
             raise ValueError(
                 'Runnable lock_type have to be a subclass of CaliciLock'
             )

@@ -15,4 +15,3 @@ class TestRun(unittest.TestCase):
         with generate_test_fd() as tmp_fd:
             lock_file = CaliciLock(tmp_fd / 'tmp_file')
             runnable = TestRunnable(lock_path = lock_file.file_path)
-            shutil.rmtree(tmp_fd)
