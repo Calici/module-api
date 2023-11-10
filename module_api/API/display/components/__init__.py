@@ -18,6 +18,7 @@ from .common import \
   v0_ProgressField, \
   Messages, \
   ControlConfig
+from .v0_pdf_view import ComponentWithPDFViewer
 
 __all__ = [
   # Version 0
@@ -37,5 +38,8 @@ __all__ = [
   'v1_ComponentWithoutTable', 
   'v1_ComponentWithTable', 
   'Messages', 
-  'ControlConfig'
+  'ControlConfig',
+
+  # New Component Yay
+  'ComponentWithPDFViewer'
 ]

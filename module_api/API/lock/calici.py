@@ -54,8 +54,8 @@ class LockStatus(LockSection):
 # Header of a lock file
 class LockHeader(LockSection):
     process     = LockField(str, default = LockProcessType.DOCKING)
-    workdir     = LockField(Path, default = Path('../workdir'))
-    sharedir    = LockField(Path, default = Path('../sharedir'))
+    workdir     = LockField(Path, default = Path('workdir'))
+    sharedir    = LockField(Path, default = Path('sharedir'))
     module_id   = LockField(int, default = -1)
     log_path    = LockField(Path, default = Path())
     pid         = LockField(int, default = -1)
@@ -72,7 +72,7 @@ class CaliciLock(LockIO):
     DISPLAY_CHANGES_FILE    = 'changes.json'
     DISPLAY_MAIN_FILE       = 'main.json'
     def __init__(self, file_path : Path, **kwargs):
-        super().__init__(file_path)
+        super().__init__(file_path, **kwargs)
         if self.params_path().exists():
             params = self.load_params()
             self.params.set_value(params, False)

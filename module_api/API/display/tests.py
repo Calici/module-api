@@ -3,7 +3,8 @@ from .components import \
     v1_ComponentWithoutTable, \
     v1_ComponentWithTable, \
     v0_ComponentWithoutTable, \
-    v0_ComponentWithTable
+    v0_ComponentWithTable, \
+    ComponentWithPDFViewer
 from .components.v1_table import \
     MutableTable as v1_MutableTable, \
     Header as v1_Header, \
@@ -33,9 +34,7 @@ class TestDisplay_v1(unittest.TestCase):
         self.lock           = test_lock_file
         self.test_folder    = test_folder
     def tearDown(self):
-        shutil.rmtree(
-            self.test_folder
-        )
+        shutil.rmtree( self.test_folder )
     def test_init(self):
         display = Display(
             lock = self.lock, dtype = 0, component = v1_ComponentWithoutTable()
@@ -101,13 +100,13 @@ class TestDisplay_v1(unittest.TestCase):
         self.assertEqual(headers[0].serialize(), {
             'displayName' : 'Column 1', 
             'type' : {
-                'type' : 'id', 'zoomable' : False, 'sortable' : False
+                'type' : 'id', 'zoomable' : 'none', 'sortable' : False
             }
         })        
         self.assertEqual(headers[1].serialize(), {
             'displayName' : 'Column 2', 
             'type' : {
-                'type' : 'string', 'zoomable' : False, 'sortable' : False
+                'type' : 'string', 'zoomable' : 'none', 'sortable' : False
             }
         })
         
@@ -127,6 +126,31 @@ class TestDisplay_v1(unittest.TestCase):
             rows = content['component']['table']['rows']
             self.assertEqual(rows[0], ["1.1", "1.2"])
             self.assertEqual(rows[1], ["2.1", "2.2"])
+
+class TestPDFDisplay(unittest.TestCase):
+    def setUp(self):
+        test_folder     = pathlib.Path('./.temp').resolve()
+        test_folder.mkdir(parents = True, exist_ok = True)
+        test_lock_file  = lock.CaliciLock(
+            test_folder / 'calici.lock', 
+            header = {'workdir' : test_folder}
+        )
+        test_lock_file.__init_display__()
+        self.lock           = test_lock_file
+        self.test_folder    = test_folder
+    def tearDown(self):
+        shutil.rmtree(
+            self.test_folder
+        )
+
+    def test_init_pdb_display(self):
+        display = Display(self.lock, ComponentWithPDFViewer(), dtype = 2)
+        self.assertEqual(pathlib.Path(display.file_path).is_file(), True)
+        self.assertEqual(pathlib.Path(display.file_path).is_file(), True)
+        self.assertEqual(len(display.component.messages), 0)
+        self.assertEqual(isinstance(display.component.pdf_file.get(), str), True)
+        with open(display.file_path) as f:
+            self.assertEqual(json.load(f)['dtype'], 2)
 
 class TestDisplay_v0(unittest.TestCase):
     def setUp(self):
