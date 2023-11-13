@@ -6,6 +6,16 @@ from .common import \
     DisplayStatus, \
     ControlConfig
 
+class PDFFile(lock.LockSection):
+    pdfFile = lock.LockField(type = str, default = '')
+    version = lock.LockField(type = int, default = 0)
+
+    def set_pdf(self, file_path : str):
+        self.set(
+            pdfFile = file_path, 
+            version = self.version.get() + 1
+        )
+
 class ComponentWithPDFViewer(lock.LockSection):
     version = lock.LockField(type = str, default = '0.0')
     progress = v1_ProgressField()
