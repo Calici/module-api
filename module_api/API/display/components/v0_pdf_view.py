@@ -4,7 +4,8 @@ from .common import \
     v1_TimeField, \
     Messages, \
     DisplayStatus, \
-    ControlConfig
+    ControlConfig, \
+    v1_SmartBoxes
 
 class PDFFile(lock.LockSection):
     pdfFile = lock.LockField(type = str, default = '')
@@ -24,3 +25,4 @@ class ComponentWithPDFViewer(lock.LockSection):
     controls = ControlConfig()
     time = v1_TimeField()
     pdf_file = lock.LockField(type = str, default = "")
+    smartBoxes = v1_SmartBoxes(default = [])
