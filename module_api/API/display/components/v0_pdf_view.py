@@ -8,7 +8,7 @@ from .common import \
     v1_SmartBoxes
 
 class PDFFile(lock.LockSection):
-    url = lock.LockField(type = str, default = 0)
+    url = lock.LockField(type = str, default = "")
     params = lock.LockField(type = dict, default = {})
     version = lock.LockField(type = int, default = 0)
 
