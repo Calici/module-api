@@ -17,6 +17,9 @@ class PDFFile(lock.LockSection):
             url = url,
             version = self.version.get() + 1
         )
+    
+    def increment_version(self):
+        self.set(version = self.version.get() + 1)
 
 class ComponentWithPDFViewer(lock.LockSection):
     version = lock.LockField(type = str, default = '0.0')
