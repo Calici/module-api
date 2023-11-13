@@ -8,12 +8,13 @@ from .common import \
     v1_SmartBoxes
 
 class PDFFile(lock.LockSection):
-    pdfFile = lock.LockField(type = str, default = '')
+    url = lock.LockField(type = str, default = 0)
+    params = lock.LockField(type = dict, default = {})
     version = lock.LockField(type = int, default = 0)
 
-    def set_pdf(self, file_path : str):
+    def set_pdf(self, url : str):
         self.set(
-            pdfFile = file_path, 
+            url = url,
             version = self.version.get() + 1
         )
 
