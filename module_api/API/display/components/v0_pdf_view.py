@@ -24,5 +24,5 @@ class ComponentWithPDFViewer(lock.LockSection):
     status = lock.LockField[DisplayStatus](str, default = 'INIT')
     controls = ControlConfig()
     time = v1_TimeField()
-    pdf_file = lock.LockField(type = str, default = "")
+    pdf_file = PDFFile()
     smartBoxes = v1_SmartBoxes(default = [])
