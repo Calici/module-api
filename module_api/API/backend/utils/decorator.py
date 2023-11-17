@@ -36,7 +36,7 @@ def backend_api_call(
     retry_count : int = 5, 
     retry_interval : float = WAITING_FOR_ERROR_API_SENDING
 ) -> Callable[
-    [Callable[..., requests.Response]], Callable[..., requests.Response]
+    [Callable[P, requests.Response]], Callable[P, requests.Response]
 ]:
     """
         Usage : 
@@ -46,8 +46,8 @@ def backend_api_call(
         This decorator schedules resend of requests for failed requests.
         Retries the request for retry_count times with retry_interval time.
     """
-    def decorator(func : Callable[..., requests.Response]):
-        def decorated_function(*args, **kwargs):
+    def decorator(func : Callable[P, requests.Response]):
+        def decorated_function(*args : P.args, **kwargs : P.kwargs):
             for _ in range(retry_count):
                 try:
                     return run_query(func, *args, **kwargs)
