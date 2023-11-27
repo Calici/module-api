@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+import argparse
+import pathlib
+import os
+from typing_extensions import Dict, Type, Union
+from module_api.cmd.base import ActionHandler
+from module_api.cmd.init_workdir import InitWorkdirHandler
+from module_api.cmd.init_manifest import InitManifestHandler
+
+HANDLERS : Dict[str, Type[ActionHandler]] = {
+    'init.workdir' : InitWorkdirHandler,
+    'init.manifest' : InitManifestHandler
+}
+
+def make_action(action1 : Union[str, None], action2 : Union[str, None]) -> str:
+    if action2 is not None and action1 is not None:
+        return '{0}.{1}'.format(action1, action2)
+    elif action1 is not None:
+        return action1
+    else:
+        raise RuntimeError("No arguments have been given")
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("action1", type = str)
+    parser.add_argument("action2", type = str)
+    args = parser.parse_args()
+
+    action1 : str = args.action1
+    action2 : str = args.action2
+
+    action = make_action(action1, action2)
+
+    manifest = pathlib.Path(os.getcwd(), 'manifest.json')
+    workdir = pathlib.Path(os.getcwd(), 'src')
+    
+    if action not in HANDLERS:
+        raise RuntimeError("{0} is not part of {1}".format(
+            action, HANDLERS.keys()
+        ))
+
+    handler = HANDLERS[action](manifest, workdir)
+    handler.action()

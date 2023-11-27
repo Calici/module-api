@@ -1,0 +1,22 @@
+from __future__ import annotations
+from module_api.API.runnable import Runnable
+from lock import ModuleLock, ModuleData
+from module_api.API.error import ErrorBuffer
+from module_api.API.backend import \
+    TokenAPI, \
+    NotificationAPI, \
+    ModuleAPI
+
+class ModuleRunnable(Runnable[ModuleLock]):
+    lock_type = ModuleLock
+    def init(self, lock : ModuleLock, debug : bool = True):
+        module_id = lock.header.module_id.get()
+        self.token_api = TokenAPI(module_id)
+        self.notification_api = NotificationAPI(module_id)
+        self.module_api = ModuleAPI(module_id, ModuleData)
+        self.error_buffer = ErrorBuffer(lock)
+
+if __name__ == '__main__':
+    runnable = Runnable.create(ModuleRunnable)
+    runnable._initialize()
+    runnable._run()
