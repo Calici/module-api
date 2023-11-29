@@ -1,2 +1,1 @@
-include module_api/cmd/*.json
-include module_api/cmd/*.txt
+include module_api/cmd/templates/*

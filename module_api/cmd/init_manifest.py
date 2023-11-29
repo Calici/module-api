@@ -1,9 +1,9 @@
-from .base import ActionHandler
+from .base import ActionHandler, TEMPLATE_DIR
 import pathlib
 import shutil
 
-MANIFEST_TEMPLATE = pathlib.Path(__file__).parent / 'manifest_template.json'
-MANIFEST_VALIDATE = pathlib.Path(__file__).parent / 'manifest-validate.json'
+MANIFEST_TEMPLATE = TEMPLATE_DIR / 'manifest_template.json'
+MANIFEST_VALIDATE = TEMPLATE_DIR / 'manifest-validate.json'
 
 class InitManifestHandler(ActionHandler):
     def action(self):
@@ -12,4 +12,3 @@ class InitManifestHandler(ActionHandler):
             MANIFEST_VALIDATE, 
             self.manifest.path.parent / 'manifest-validate.json'
         )
-        

@@ -2,42 +2,44 @@
 import argparse
 import pathlib
 import os
-from typing_extensions import Dict, Type, Union
-from module_api.cmd.base import ActionHandler
+from typing_extensions import Dict, Type, Union, List
+from module_api.cmd.base import \
+    ActionHandler, \
+    make_action, \
+    exec_handlers
 from module_api.cmd.init_workdir import InitWorkdirHandler
 from module_api.cmd.init_manifest import InitManifestHandler
+from module_api.cmd.init_docker import InitDockerHandler
+from module_api.cmd.init_dir import InitDir
 
-HANDLERS : Dict[str, Type[ActionHandler]] = {
+HANDLERS : Dict[str, Union[Type[ActionHandler], List[str]]] = {
     'init.workdir' : InitWorkdirHandler,
-    'init.manifest' : InitManifestHandler
+    'init.manifest' : InitManifestHandler, 
+    'init.docker' : InitDockerHandler, 
+    'init.dir' : InitDir,
+    'init' : [ 'init.manifest', 'init.workdir', 'init.docker', 'init.dir' ]
 }
-
-def make_action(action1 : Union[str, None], action2 : Union[str, None]) -> str:
-    if action2 is not None and action1 is not None:
-        return '{0}.{1}'.format(action1, action2)
-    elif action1 is not None:
-        return action1
-    else:
-        raise RuntimeError("No arguments have been given")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("action1", type = str)
-    parser.add_argument("action2", type = str)
+    parser.add_argument("action", nargs = '*', type = str)
     args = parser.parse_args()
+    action : List[str] = args.action
+    
+    if len(action) > 2:
+        raise RuntimeError("Only a maximum of two actions is allowed")
 
-    action1 : str = args.action1
-    action2 : str = args.action2
+    action1 = action[0] if 0 < len(action) else None
+    action2 = action[1] if 1 < len(action) else None
 
-    action = make_action(action1, action2)
+    concat_action = make_action(action1, action2)
 
     manifest = pathlib.Path(os.getcwd(), 'manifest.json')
     workdir = pathlib.Path(os.getcwd(), 'src')
     
-    if action not in HANDLERS:
+    if concat_action not in HANDLERS:
         raise RuntimeError("{0} is not part of {1}".format(
-            action, HANDLERS.keys()
+            concat_action, HANDLERS.keys()
         ))
 
-    handler = HANDLERS[action](manifest, workdir)
-    handler.action()
+    exec_handlers(HANDLERS, concat_action, manifest, workdir)

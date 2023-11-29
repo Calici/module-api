@@ -5,7 +5,7 @@ from setuptools import \
 
 setup(
     name='module-api',
-    version='0.0.21',    
+    version='0.0.22',    
     description='A Python Package to communicate with the module frontend and backend',
     url='https://github.com/calici/module-api',
     author='Jonathan Willianto',
@@ -26,6 +26,7 @@ setup(
       "requests==2.31.0",
       "typing_extensions==4.7.1",
       "urllib3==2.0.7", 
+      "python-slugify==8.0.1"
       "pypharmaco @ https://github.com/Calici/pypharmaco/releases/download/v0.0.1/pypharmaco-0.0.1-py3-none-any.whl"
     ],
     include_package_data = True,

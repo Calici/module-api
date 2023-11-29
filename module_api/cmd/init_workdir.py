@@ -1,12 +1,12 @@
-from .base import ActionHandler
+from .base import ActionHandler, TEMPLATE_DIR
 from typing_extensions import \
     Literal
 import pathlib
 import shutil
 
 PARAM_TYPE = Literal['str', 'int', 'float', 'path', 'dict', 'list', 'bool']
-LOCK_TEMPLATE = pathlib.Path(__file__).parent / 'lock_template.txt'
-RUN_TEMPLATE = pathlib.Path(__file__).parent / 'run_template.txt'
+LOCK_TEMPLATE = TEMPLATE_DIR / 'lock_template.txt'
+RUN_TEMPLATE = TEMPLATE_DIR / 'run_template.txt'
 
 class ParamField:
     def __init__(self, param_name : str, param_config : dict):
