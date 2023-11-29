@@ -9,6 +9,7 @@ from typing_extensions import \
     Union, \
     List, \
     Type
+import module_api.API.lock as Lock
 
 TEMPLATE_DIR = pathlib.Path(__file__).parent / 'templates'
 
@@ -25,6 +26,13 @@ ManifestT = TypedDict("ManifestT", {
     'version' : str,
     '$schema' : str
 })
+
+class ModuleSection(Lock.LockSection):
+    name = Lock.LockField(str, default = '')
+    internal_name = Lock.LockField(str, default = '')
+
+class ModuleLock(Lock.LockIO):
+    module = ModuleSection()
 
 class Manifest:
     __slots__ = ('path', )

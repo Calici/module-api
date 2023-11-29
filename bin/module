@@ -11,13 +11,15 @@ from module_api.cmd.init_workdir import InitWorkdirHandler
 from module_api.cmd.init_manifest import InitManifestHandler
 from module_api.cmd.init_docker import InitDockerHandler
 from module_api.cmd.init_dir import InitDir
+from module_api.cmd.build_docker import BuildDocker
 
 HANDLERS : Dict[str, Union[Type[ActionHandler], List[str]]] = {
     'init.workdir' : InitWorkdirHandler,
     'init.manifest' : InitManifestHandler, 
     'init.docker' : InitDockerHandler, 
     'init.dir' : InitDir,
-    'init' : [ 'init.manifest', 'init.workdir', 'init.docker', 'init.dir' ]
+    'init' : [ 'init.manifest', 'init.workdir', 'init.docker', 'init.dir' ],
+    "build" : BuildDocker
 }
 
 if __name__ == '__main__':

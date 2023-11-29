@@ -1,19 +1,11 @@
-from .base import ActionHandler, TEMPLATE_DIR
+from .base import ActionHandler, TEMPLATE_DIR, ModuleLock
 import pathlib
 from slugify import slugify
 import shutil
-import module_api.API.lock as Lock
 import subprocess
 
 GITIGNORE_TEMPLATE = TEMPLATE_DIR / '.gitignore.tmp'
 DOCKERIGNORE_TEMPLATE = TEMPLATE_DIR / '.dockerignore.tmp'
-
-class ModuleSection(Lock.LockSection):
-    name = Lock.LockField(str, default = '')
-    internal_name = Lock.LockField(str, default = '')
-
-class ModuleLock(Lock.LockIO):
-    module = ModuleSection()
 
 class InitDir(ActionHandler):
     def __init__(self, manifest : pathlib.Path, workdir : pathlib.Path):
