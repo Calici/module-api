@@ -26,7 +26,7 @@ setup(
       "requests==2.31.0",
       "typing_extensions==4.7.1",
       "urllib3==2.0.7", 
-      "python-slugify==8.0.1"
+      "python-slugify==8.0.1",
       "pypharmaco @ https://github.com/Calici/pypharmaco/releases/download/v0.0.1/pypharmaco-0.0.1-py3-none-any.whl"
     ],
     include_package_data = True,
