@@ -30,9 +30,19 @@ ManifestT = TypedDict("ManifestT", {
 class ModuleSection(Lock.LockSection):
     name = Lock.LockField(str, default = '')
     internal_name = Lock.LockField(str, default = '')
+    version = Lock.LockField(str, default = '0.0.0')
+
+class DockerSection(Lock.LockSection):
+    volumes = Lock.ListField(
+        Lock.TypeField(Lock.LockField, str), default = ["./src:/app"]
+    )
+    container_name = Lock.LockField(str, default = '')
+    run_argument = Lock.LockField(str, default = '--rm')
+    run_command = Lock.LockField(str, default = 'bash')
 
 class ModuleLock(Lock.LockIO):
     module = ModuleSection()
+    docker = DockerSection()
 
 class Manifest:
     __slots__ = ('path', )
@@ -52,11 +62,12 @@ class Manifest:
             raise RuntimeError(f"Manifest does not exist at {self.path}")
 
 class ActionHandler(ABC):
-    __slots__ = ('manifest', 'workdir', 'root_dir')
+    __slots__ = ('manifest', 'workdir', 'root_dir', 'lock_path')
     def __init__(self, manifest : pathlib.Path, workdir : pathlib.Path):
         self.manifest = Manifest(manifest)
         self.workdir = workdir
         self.root_dir = manifest.parent
+        self.lock_path = self.root_dir / 'module.lock'
 
     @abstractmethod
     def action(self):

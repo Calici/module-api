@@ -12,6 +12,7 @@ from module_api.cmd.init_manifest import InitManifestHandler
 from module_api.cmd.init_docker import InitDockerHandler
 from module_api.cmd.init_dir import InitDir
 from module_api.cmd.build_docker import BuildDocker
+from module_api.cmd.run_docker import RunDocker
 
 HANDLERS : Dict[str, Union[Type[ActionHandler], List[str]]] = {
     'init.workdir' : InitWorkdirHandler,
@@ -19,7 +20,8 @@ HANDLERS : Dict[str, Union[Type[ActionHandler], List[str]]] = {
     'init.docker' : InitDockerHandler, 
     'init.dir' : InitDir,
     'init' : [ 'init.manifest', 'init.workdir', 'init.docker', 'init.dir' ],
-    "build" : BuildDocker
+    "build" : BuildDocker, 
+    'run' : RunDocker
 }
 
 if __name__ == '__main__':
