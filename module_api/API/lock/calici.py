@@ -73,23 +73,24 @@ class CaliciLock(LockIO):
     DISPLAY_MAIN_FILE       = 'main.json'
     def __init__(self, file_path : Path, **kwargs):
         super().__init__(file_path, **kwargs)
+
+        # Process Params
         if self.params_path().exists():
             params = self.load_params()
             self.params.set_value(params, False)
+        elif not self.params_path().exists() and "params" in kwargs:
+            self.params.set_value(kwargs['params'], False)
+            self.save_params(self.params.serialize())
+        else:
+            self.save_params({})
     # Get display file path
     def display_path(self) -> Path:
-        return self.header.workdir.get() \
-            / self.__reserved_file_path__ \
-            / self.__display_file_path__
+        return self.file_path.parent / self.__display_file_path__
     def params_path(self) -> Path:
-        return self.header.workdir.get() \
-            / self.__reserved_file_path__ \
-            / 'params.json'
+        return self.file_path.parent / 'params.json'
     # Get error file path
     def error_path(self) -> Path:
-        return self.header.workdir.get() \
-            / self.__reserved_file_path__ \
-            / self.__error_file_path__
+        return self.file_path.parent /self.__error_file_path__
     # changing status
     def change_status(self, status : str):
         if not self.file_exists():
