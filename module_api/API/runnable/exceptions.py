@@ -1,6 +1,4 @@
 # Stops running of the process
-
-
 class StopRunnable(Exception):
     def __init__(self, message='', org_exc=None):
         super().__init__(message)
