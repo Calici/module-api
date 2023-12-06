@@ -2,48 +2,78 @@
 import argparse
 import pathlib
 import os
-from typing_extensions import Dict, Type, Union, List
 from module_api.cmd.base import \
-    ActionHandler, \
-    make_action, \
-    exec_handlers
-from module_api.cmd.init_workdir import InitWorkdirHandler
-from module_api.cmd.init_manifest import InitManifestHandler
-from module_api.cmd.init_docker import InitDockerHandler
-from module_api.cmd.init_dir import InitDir
-from module_api.cmd.build_docker import BuildDocker
-from module_api.cmd.run_docker import RunDocker
+    exec_handlers, \
+    HandlerMapT, \
+    ModuleLock
+from module_api.cmd import *
+from typing_extensions import List
 
-HANDLERS : Dict[str, Union[Type[ActionHandler], List[str]]] = {
+HANDLERS : HandlerMapT = {
+    # Initialization
     'init.workdir' : InitWorkdirHandler,
     'init.manifest' : InitManifestHandler, 
     'init.docker' : InitDockerHandler, 
     'init.dir' : InitDir,
-    'init' : [ 'init.manifest', 'init.workdir', 'init.docker', 'init.dir' ],
-    "build" : BuildDocker, 
-    'run' : RunDocker
+    "init.lock" : InitLock,
+    'init' : [ 
+        "init.lock",
+        'init.manifest', 
+        'init.workdir', 
+        'init.docker', 
+        'init.dir' 
+    ],
+    # Testing
+    "test.add" : ["test.refresh", MakeTest],
+    "test.all" : ["test.refresh", TestAll],
+    "test.list" : ["test.list", TestList],
+    "test.refresh" : TestRefresh,
+
+    # Container
+    "container.build" : BuildDocker, 
+    "container.run" : RunDocker, 
+
+    # Update and Lock
+    'refresh.lock' : [
+        "test.refresh",
+    ]
 }
+
+MAX_FIND_DEPTH = 10;
+available_actions = [ ' '.join(key.split('.')) for key in HANDLERS.keys() ]
+
+def chain_actions(action : List[str]) -> str:
+    return '.'.join(action)
+
+def try_find_lock(
+    root : pathlib.Path, depth : int = MAX_FIND_DEPTH
+) -> pathlib.Path:
+    lock_path = root / 'module.lock'
+    if lock_path.exists(): return lock_path
+    elif depth != 0: return try_find_lock(root.parent, depth - 1)
+    raise FileNotFoundError
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", nargs = '*', type = str)
+    parser.add_argument(
+        "action", nargs = '*', type = str, 
+        help = ', '.join(available_actions)
+    )
     args = parser.parse_args()
-    action : List[str] = args.action
+
+    action = chain_actions(args.action)
     
-    if len(action) > 2:
-        raise RuntimeError("Only a maximum of two actions is allowed")
+    if len(action) == 0:
+        raise RuntimeError("No action have been provided")
 
-    action1 = action[0] if 0 < len(action) else None
-    action2 = action[1] if 1 < len(action) else None
-
-    concat_action = make_action(action1, action2)
-
-    manifest = pathlib.Path(os.getcwd(), 'manifest.json')
-    workdir = pathlib.Path(os.getcwd(), 'src')
+    try:
+        lock_path = try_find_lock(pathlib.Path(os.getcwd()))
+    except FileNotFoundError:
+        lock_path = pathlib.Path(os.getcwd(), 'module.lock')
+    lock = ModuleLock(lock_path)
     
-    if concat_action not in HANDLERS:
+    if action not in HANDLERS:
         raise RuntimeError("{0} is not part of {1}".format(
-            concat_action, HANDLERS.keys()
+            action, HANDLERS.keys()
         ))
-
-    exec_handlers(HANDLERS, concat_action, manifest, workdir)
+    exec_handlers(HANDLERS, action, lock)
