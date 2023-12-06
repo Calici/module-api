@@ -1,5 +1,5 @@
-from .base import ActionHandler, TEMPLATE_DIR, ModuleLock
-import pathlib
+from module_api.cmd.base import ActionHandler, TEMPLATE_DIR
+from module_api.cmd.base import ModuleLock
 from slugify import slugify
 import shutil
 import subprocess
@@ -8,11 +8,11 @@ GITIGNORE_TEMPLATE = TEMPLATE_DIR / '.gitignore.tmp'
 DOCKERIGNORE_TEMPLATE = TEMPLATE_DIR / '.dockerignore.tmp'
 
 class InitDir(ActionHandler):
-    def __init__(self, manifest : pathlib.Path, workdir : pathlib.Path):
-        super().__init__(manifest, workdir)
-        self.module_lock = ModuleLock(self.lock_path)
-        self.gitignore_path = self.root_dir / '.gitignore'
-        self.dockerignore_path = self.root_dir / '.dockerignore'
+    def __init__(self, lock : ModuleLock):
+        super().__init__(lock)
+        root_dir = self.lock.module.root_dir.get()
+        self.gitignore_path = root_dir / '.gitignore'
+        self.dockerignore_path = root_dir / '.dockerignore'
     
     def get_template(self, name : str, internal_name : str, version : str):
         return {
@@ -40,7 +40,7 @@ class InitDir(ActionHandler):
         while not self.validate_version(version):
             print("Invalid version string")
             version = input('Enter version : ')
-        self.module_lock.set(
+        self.lock.set(
             **self.get_template(module_name, internal_module_name, version)
         )
         subprocess.run(["git", "init"])

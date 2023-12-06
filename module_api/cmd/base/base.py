@@ -8,10 +8,10 @@ from typing_extensions import \
     Dict, \
     Union, \
     List, \
-    Type
+    Callable
 from .lock import ModuleLock
 
-TEMPLATE_DIR = pathlib.Path(__file__).parent / 'templates'
+TEMPLATE_DIR = pathlib.Path(__file__).parent.parent / 'templates'
 
 ManifestT = TypedDict("ManifestT", {
     "params" : Dict[str, Any],
@@ -28,16 +28,20 @@ ManifestT = TypedDict("ManifestT", {
 })
 
 class Manifest:
-    __slots__ = ('path', )
+    __slots__ = ('path', 'content')
     def __init__(self, manifest : pathlib.Path):
         self.path = manifest
+        self.content = None
     
     def get_json(self) -> ManifestT:
-        with open(self.path, 'r') as f:
-            return json.load(f)
+        if self.content is None:
+            with open(self.path, 'r') as f:
+                self.content = json.load(f)
+        return self.content
     
     def write_json(self, content : ManifestT):
         with open(self.path, 'w') as f:
+            self.content = content
             json.dump(content, f)
     
     def validate_exist(self):
@@ -45,33 +49,34 @@ class Manifest:
             raise RuntimeError(f"Manifest does not exist at {self.path}")
 
 class ActionHandler(ABC):
-    __slots__ = ('manifest', 'workdir', 'root_dir', 'lock_path')
-    def __init__(self, manifest : pathlib.Path, workdir : pathlib.Path):
-        self.manifest = Manifest(manifest)
-        self.workdir = workdir
-        self.root_dir = manifest.parent
-        self.lock_path = self.root_dir / 'module.lock'
+    def __init__(self, lock : ModuleLock):
+        self.lock = lock
+        self.manifest = Manifest(lock.module.root_dir.get() / 'manifest.json')
+        self.workdir = lock.module.root_dir.get() / 'src'
 
     @abstractmethod
     def action(self):
         ...
 
-HandlerMapT = Dict[str, Union[Type[ActionHandler], List[str]]]
-def make_action(action1 : Union[str, None], action2 : Union[str, None]):
-    if action2 is not None and action2 is not None:
-        return '{0}.{1}'.format(action1, action2)
-    elif action1 is not None:
-        return action1
-    else:
-        raise RuntimeError("At least action1 have to be given")
+ActionHandlerConstructorT = \
+    Callable[[ ModuleLock ], ActionHandler]
+HandlerMapT = Dict[
+    str, 
+    Union[
+        ActionHandlerConstructorT, 
+        List[Union[str, ActionHandlerConstructorT]]
+    ]
+]
 
 def exec_handlers(
-    handler_map : HandlerMapT,
-    action : str, manifest : pathlib.Path, workdir : pathlib.Path
+    handler_map : HandlerMapT, action : str, lock : ModuleLock
 ):
     Handler = handler_map[action]
     if isinstance(Handler, list):
         for handler in Handler:
-            exec_handlers(handler_map, handler, manifest, workdir)
+            if isinstance(handler, str):
+                exec_handlers(handler_map, handler, lock)
+            else:
+                handler(lock).action()
     else:
-        Handler(manifest, workdir).action()
+        Handler(lock).action()

@@ -1,7 +1,9 @@
-from .base import ActionHandler, TEMPLATE_DIR
+from module_api.cmd.base import \
+    ActionHandler, \
+    TEMPLATE_DIR, \
+    ModuleLock
 from typing_extensions import \
     Literal
-import pathlib
 import shutil
 
 PARAM_TYPE = Literal['str', 'int', 'float', 'path', 'dict', 'list', 'bool']
@@ -49,8 +51,9 @@ class ParamField:
                 )
 
 class InitWorkdirHandler(ActionHandler):
-    def __init__(self, manifest : pathlib.Path, workdir : pathlib.Path):
-        super().__init__(manifest, workdir)
+    def __init__(self, lock : ModuleLock):
+        super().__init__(lock)
+        workdir = self.lock.module.root_dir.get() / 'src'
         self.lock_py_path = workdir / 'lock.py'
         self.run_py_path = workdir / 'run.py'
         

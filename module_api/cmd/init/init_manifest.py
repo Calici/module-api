@@ -1,5 +1,4 @@
-from .base import ActionHandler, TEMPLATE_DIR
-import pathlib
+from module_api.cmd.base import ActionHandler, TEMPLATE_DIR
 import shutil
 
 MANIFEST_TEMPLATE = TEMPLATE_DIR / 'manifest_template.json'
