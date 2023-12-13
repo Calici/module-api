@@ -17,7 +17,7 @@ import sys
 import module_api.API.lock as Lock
 import module_api.API.logging as log
 
-T = TypeVar('T', bound = Lock.CaliciLock)
+T = TypeVar('T', bound = Lock.CaliciLock, covariant = True)
 class Runnable(Generic[T], abc.ABC):
     lock_type : Type[T]
     def __init__(self, lock_path : pathlib.Path, logger_name : str = __file__):
@@ -89,7 +89,7 @@ def create(Runnable : Type[V]) -> V:
     runnable = Runnable(args.lock)
     return runnable
 
-def default_run(runnable : Runnable[Lock.CaliciLock]):
+def default_run(runnable : Runnable[T]):
     try:
         runnable.initialize()
         runnable.run()
