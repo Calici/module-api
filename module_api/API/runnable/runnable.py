@@ -1,4 +1,8 @@
 from __future__ import annotations
+from .exceptions import \
+    StopRunnable, \
+    StopRunnableStatusError, \
+    StopRunnableStatusStop
 import os
 import abc
 from typing_extensions import \
@@ -85,9 +89,33 @@ def create(Runnable : Type[V]) -> V:
     runnable = Runnable(args.lock)
     return runnable
 
-def default_run(runnable : Runnable):
+def default_run(runnable : Runnable[Lock.CaliciLock]):
     try:
         runnable.initialize()
         runnable.run()
+    except StopRunnable as e:
+        runnable.lock.change_status(Lock.LockIOStatusType.STOP)
+        runnable.stop()
+        runnable.logger.warning(
+            "StopRunnable - Message : {0} - E : {1}".format(
+                e.message, e.org_exc
+            )
+        )
+    except StopRunnableStatusStop as e:
+        runnable.lock.change_status(Lock.LockIOStatusType.STOP)
+        runnable.stop()
+        runnable.logger.warning(
+            "StopRunnable (Stop) - Message : {0} - E : {1}".format(
+                e.message, e.org_exc
+            )
+        )
+    except StopRunnableStatusError as e:
+        runnable.lock.change_status(Lock.LockIOStatusType.ERROR)
+        runnable.stop()
+        runnable.logger.warning(
+            "StopRunnable (Error) - Message : {0} - E : {1}".format(
+                e.message, e.org_exc
+            )
+        )
     except Exception as e:
         runnable.exception_handler(e)
