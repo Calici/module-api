@@ -36,10 +36,10 @@ class InitDir(ActionHandler):
     def action(self):
         module_name = input('Enter module name : ')
         internal_module_name = slugify(module_name)
-        version = input('Enter version : ')
+        version = input('Enter version (x.x.x) : ')
         while not self.validate_version(version):
             print("Invalid version string")
-            version = input('Enter version : ')
+            version = input('Enter version (x.x.x) : ')
         self.lock.set(
             **self.get_template(module_name, internal_module_name, version)
         )
