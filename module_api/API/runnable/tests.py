@@ -5,8 +5,7 @@ from .compat.v0 import Runnable as Runnable_v0
 from .runnable import Runnable, default_run
 from .exceptions import \
     StopRunnable, \
-    StopRunnableStatusError, \
-    StopRunnableStatusStop
+    StopRunnableStatusError
 class TestLock(CaliciLock):
     pass
 
@@ -34,6 +33,12 @@ class TestRun(unittest.TestCase):
             
             def stop(self):
                 pass
+
+            def exception_handler(self, e: Exception):
+                if isinstance(e, StopRunnable):
+                    self.lock.change_status(LockIOStatusType.STOP)
+                else:
+                    super().exception_handler(e)
         with generate_test_fd() as tmp_fd:
             lock_file = CaliciLock(tmp_fd / 'tmp_file')
             runnable = TestRunnable(lock_file.file_path)
@@ -57,6 +62,13 @@ class TestRun(unittest.TestCase):
             
             def stop(self):
                 pass
+
+            def exception_handler(self, e: Exception):
+                if isinstance(e, StopRunnableStatusError):
+                    self.lock.change_status(LockIOStatusType.ERROR)
+                else:
+                    super().exception_handler(e)
+
         with generate_test_fd() as tmp_fd:
             lock_file = CaliciLock(tmp_fd / 'tmp_file')
             runnable = TestRunnable(lock_file.file_path)
