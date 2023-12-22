@@ -26,7 +26,7 @@ HANDLERS : HandlerMapT = {
     # Testing
     "test.add" : ["test.refresh", MakeTest],
     "test.all" : ["test.refresh", TestAll],
-    "test.list" : ["test.list", TestList],
+    "test.list" : ["test.refresh", TestList],
     "test.refresh" : TestRefresh,
 
     # Container
