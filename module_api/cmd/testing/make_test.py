@@ -38,20 +38,21 @@ class MakeTest(TestBase):
             param_name : param['default']
             for param_name, param in manifest['params'].items()
         }
+        container_test_folder = self.container_root() / test_dir.name
         lock = CaliciLock(
             lock_path, 
             header = {
                 'process' : self.lock.module.internal_name.get(),
-                'workdir' : self.container_root() / 'workdir', 
-                'sharedir' : self.container_root() / 'sharedir',
+                'workdir' : container_test_folder / 'workdir', 
+                'sharedir' : container_test_folder / 'sharedir',
                 'module_id' : 1, 
                 'log_path' : CaliciLock.default_log_path(
-                    self.container_root() / 'workdir'
+                    container_test_folder / 'workdir'
                 ),
                 'gpu_blocks' : []
             },
             depends = {
-                name : str(self.container_root() / 'depends')
+                name : str(container_test_folder / 'depends')
                 for name in manifest['in_nodes'].keys()
             }
         )

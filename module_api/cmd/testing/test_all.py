@@ -70,7 +70,7 @@ class TestAll(TestBase):
                 *self.container.get_volume_args([
                     '{0}:{1}'.format(
                         str(test.path.get()), 
-                        str(self.container_root() / test.name.get())
+                        str(self.container_root() / test.path.get().name)
                     )
                 ]),
                 "--network={0}".format(self.network_name()),
@@ -95,4 +95,4 @@ class TestAll(TestBase):
             for test in self.lock.testing.get():
                 name = test.name.get()
                 print(f"Running test : {name}")
-                self.run_process(name)
+                self.run_process(test.path.get().name)
