@@ -7,7 +7,7 @@ from .base import \
     SERVER_FILE
 from module_api.API.test import random_string
 import subprocess
-
+import pathlib
 class TestAll(TestBase):
     def __init__(self, lock : ModuleLock):
         super().__init__(lock)
@@ -79,10 +79,19 @@ class TestAll(TestBase):
             for test in self.lock.testing.get()
         }
 
-    def run_process(self, name : str):
+    def run_process(self, name : str, test_path : pathlib.Path):
         process = self.container.run(
             self.run_args[name], 
-            ["--lock", f"/data/{name}/workdir/.reserved/default.lock"]
+            [
+                "--lock", 
+                str(
+                    self.container_root() /\
+                    test_path.name /\
+                    'workdir' /\
+                     '.reserved' /\
+                    'default.lock'
+                )
+            ]
         )
         process.wait()
 
@@ -95,4 +104,4 @@ class TestAll(TestBase):
             for test in self.lock.testing.get():
                 name = test.name.get()
                 print(f"Running test : {name}")
-                self.run_process(test.path.get().name)
+                self.run_process(name, test.path.get())
