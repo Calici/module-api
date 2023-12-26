@@ -1,5 +1,6 @@
 import unittest
 from .timer import Timer
+import time
 
 class TimerTest(unittest.TestCase):
     def assert_timer_float(self, timers : dict):
@@ -28,8 +29,8 @@ class TimerTest(unittest.TestCase):
         timer.start('A')
         try:
             timer.start('A')
-        except ValueError: return
-        assert 'A' == 'Already Exist' 
+        except KeyError: return
+        assert 'A' == 'Already Exist'
     
     def test_close_closed_timer(self):
         timer   = Timer()
@@ -37,7 +38,7 @@ class TimerTest(unittest.TestCase):
         timer.end('A')
         try:
             timer.end('A')
-        except ValueError: return 
+        except KeyError: return 
         assert 'A' == 'Already Ended'
     
     def test_sum_all_timer(self):
@@ -46,3 +47,9 @@ class TimerTest(unittest.TestCase):
         timer.end('A')
         timer.sum()
         
+    def test_use_with_pattern(self):
+        timer = Timer()
+        with timer.start('A'):
+            time.sleep(1)
+        elapsed_time = timer.get_time('A')
+        self.assertAlmostEqual(elapsed_time, 1, 1)

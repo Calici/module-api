@@ -5,6 +5,8 @@ from typing_extensions import \
     TypedDict, \
     Union, \
     NotRequired
+from module_api.API.patterns import \
+    WithPattern
 # TIMER
 # start(timer_name : str) -> start a timer with name timer_name
 # end(timer_name : str) -> end a timer with name timer_name
@@ -20,14 +22,16 @@ TimerT = TypedDict("TimerT", {
 class Timer:
     def __init__(self): 
         self.timers : Dict[str, TimerT] = {}
-    def start(self, timer_name : str): 
-        try:
-            lol     = self.timers[timer_name]
-            raise ValueError(f'{timer_name} exists')
-        except KeyError:
-            self.timers[timer_name] = {
-                'start' : time.time(), 'end' : None
-            }
+    def start(self, timer_name : str) -> WithPattern: 
+        if timer_name in self.timers:
+            raise KeyError(f'{timer_name} exists')
+        self.timers[timer_name] = {
+            'start' : time.time(), 'end' : None
+        }
+        return WithPattern(
+            lambda: timer_name,
+            lambda name: self.end(name)
+        )
 
     def _get_delta(self, timer_name : str) -> float: 
         try:
@@ -44,7 +48,7 @@ class Timer:
     def end(self, timer_name : str) -> float:
         try:
             if self.timers[timer_name]['end'] is not None: 
-                raise ValueError(f'Timer {timer_name} already ended')
+                raise KeyError(f'Timer {timer_name} already ended')
             self.timers[timer_name]['end']  = time.time()
             return self._get_delta(timer_name)
         except KeyError: raise KeyError(f"No such timer {timer_name}")
