@@ -7,8 +7,6 @@ from .container import \
     Container
 from .lock import \
     ModuleLock
-from .cleaner import \
-    Cleaner
 
 __all__ = [
   'ActionHandler',
@@ -17,5 +15,4 @@ __all__ = [
   'ModuleLock',
   'TEMPLATE_DIR', 
   'HandlerMapT',
-  'Cleaner'
 ]

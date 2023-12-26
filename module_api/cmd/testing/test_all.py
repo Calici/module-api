@@ -1,7 +1,7 @@
 from module_api.cmd.base import \
     ModuleLock, \
-    Container, \
-    Cleaner
+    Container
+from module_api.API.patterns import WithPattern as Cleaner
 from .base import \
     TestBase, \
     SERVER_FILE

@@ -5,7 +5,7 @@ from typing_extensions import \
     Any
 
 T = TypeVar('T')
-class Cleaner(Generic[T]):
+class WithPattern(Generic[T]):
     def __init__(self, 
         creator : Callable[[], T], 
         cleanup : Callable[[T], Any]
