@@ -72,7 +72,7 @@ if __name__ == '__main__':
         lock_path = pathlib.Path(os.getcwd(), 'module.lock')
     lock = ModuleLock(lock_path)
     if lock.module.root_dir.get() != lock_path.resolve():
-        lock.set(module = { 'root_dir' : lock_path.resolve() })
+        lock.set(module = { 'root_dir' : lock_path.resolve().parent })
     lock.save()
     
     if action not in HANDLERS:
