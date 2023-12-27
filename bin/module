@@ -70,9 +70,10 @@ if __name__ == '__main__':
         lock_path = try_find_lock(pathlib.Path(os.getcwd()))
     except FileNotFoundError:
         lock_path = pathlib.Path(os.getcwd(), 'module.lock')
-    lock = ModuleLock(lock_path)
-    if lock.module.root_dir.get() != lock_path.resolve():
-        lock.set(module = { 'root_dir' : lock_path.resolve().parent })
+    resolved_lock_path = lock_path.resolve()
+    lock = ModuleLock(resolved_lock_path)
+    if resolved_lock_path.parent != lock.module.root_dir.get():
+        lock.set(module = { 'root_dir' : resolved_lock_path.parent })
     lock.save()
     
     if action not in HANDLERS:
