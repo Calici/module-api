@@ -13,10 +13,11 @@ class ResetAllTest(TestBase):
             }
         )
         # Delete Errors.json file and Display File
-        shutil.rmtree(lock.display_path())
-        shutil.rmtree(lock.error_path())
+        if lock.display_path().exists():
+            shutil.rmtree(lock.display_path())
+        lock.error_path().unlink(missing_ok = True)
 
-        # Clean workdirectory
+        # Clean work directory
         for entry in (test_dir / 'workdir').iterdir():
             if not (entry.is_dir() and entry.name == '.reserved'):
                 if entry.is_dir():
