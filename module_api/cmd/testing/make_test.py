@@ -52,7 +52,7 @@ class MakeTest(TestBase):
                 'gpu_blocks' : []
             },
             depends = {
-                name : str(container_test_folder / 'depends')
+                name : str(container_test_folder / 'depends' / name)
                 for name in manifest['in_nodes'].keys()
             }
         )
