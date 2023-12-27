@@ -61,6 +61,7 @@ class TestAll(TestBase):
     def prepare_run(self):
         port = self.port()
         server_name = self.server_name()
+        root_dir = self.lock.module.root_dir.get()
         self.run_args = {
             test.name.get() : [
                 *self.container.get_env_args({
@@ -69,7 +70,7 @@ class TestAll(TestBase):
                 }), 
                 *self.container.get_volume_args([
                     '{0}:{1}'.format(
-                        str(test.path.get()), 
+                        str(root_dir / test.path.get()), 
                         str(self.container_root() / test.path.get().name)
                     )
                 ]),
