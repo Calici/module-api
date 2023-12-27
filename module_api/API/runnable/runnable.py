@@ -30,7 +30,7 @@ class Runnable(Generic[T], abc.ABC):
 
     # Private Functions
     def initialize(self):
-        if self.lock.status.initialized.get():
+        if not self.lock.status.initialized.get():
             self.init()
             self.lock.set(status= {"initialized" : True})
         else:
