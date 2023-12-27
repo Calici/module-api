@@ -11,7 +11,8 @@ from .testing import \
     TestRefresh, \
     TestAll, \
     TestList, \
-    MakeTest
+    MakeTest, \
+    ResetAllTest
 
 __all__ = [
   'InitDir', 
@@ -26,5 +27,6 @@ __all__ = [
   'TestRefresh', 
   'TestAll', 
   'TestList', 
-  'MakeTest'
+  'MakeTest', 
+  'ResetAllTest'
 ]

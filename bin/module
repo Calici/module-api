@@ -28,6 +28,7 @@ HANDLERS : HandlerMapT = {
     "test.all" : ["test.refresh", TestAll],
     "test.list" : ["test.refresh", TestList],
     "test.refresh" : TestRefresh,
+    "test.reset.all" : ["test.refresh", ResetAllTest],
 
     # Container
     "container.build" : BuildDocker, 
