@@ -6,6 +6,7 @@ from .base import \
     TestBase, \
     SERVER_FILE
 from module_api.API.test import random_string
+from module_api.API.lock import CaliciLock
 import subprocess
 import pathlib
 class TestAll(TestBase):
@@ -57,6 +58,21 @@ class TestAll(TestBase):
 
     def port(self) -> int:
         return 65000
+    
+    def nvidia_arg_or_nothing(self, test_path : pathlib.Path) -> List[str]:
+        lock_path = test_path / 'workdir' / '.reserved' / 'default.lock'
+        lock = CaliciLock(lock_path)
+        gpus = lock.header.gpu_blocks.get()
+        if len(gpus) == 0:
+            return [""]
+        else:
+            gpu_devices = ",".join([
+                str(gpu.gpu_id.get()) for gpu in gpus
+            ])
+            return [
+                "--gpus", 
+                f'\'"device={gpu_devices}"\''
+            ]
 
     def prepare_run(self):
         port = self.port()
@@ -75,7 +91,7 @@ class TestAll(TestBase):
                     )
                 ]),
                 "--network={0}".format(self.network_name()),
-                "--rm", "-it"
+                "--rm", "-it", 
             ]
             for test in self.lock.testing.get()
         }
