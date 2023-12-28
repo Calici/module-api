@@ -65,7 +65,7 @@ class TestAll(TestBase):
         lock = CaliciLock(lock_path)
         gpus = lock.header.gpu_blocks.get()
         if len(gpus) == 0:
-            return [""]
+            return []
         else:
             gpu_devices = ",".join([
                 str(gpu.gpu_id.get()) for gpu in gpus
