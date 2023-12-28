@@ -71,8 +71,9 @@ class TestAll(TestBase):
                 str(gpu.gpu_id.get()) for gpu in gpus
             ])
             return [
-                "--gpus", 
-                f'\'"device={gpu_devices}"\''
+                "-e", f"CUDA_VISIBLE_DEVICES={gpu_devices}",
+                "--runtime=nvidia",
+                "--privileged"
             ]
 
     def prepare_run(self):
