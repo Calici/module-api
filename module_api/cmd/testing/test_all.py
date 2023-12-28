@@ -7,6 +7,7 @@ from .base import \
     SERVER_FILE
 from module_api.API.test import random_string
 from module_api.API.lock import CaliciLock
+from typing import List
 import subprocess
 import pathlib
 class TestAll(TestBase):
@@ -91,7 +92,7 @@ class TestAll(TestBase):
                     )
                 ]),
                 "--network={0}".format(self.network_name()),
-                "--rm", "-it", 
+                "--rm", "-it", *self.nvidia_arg_or_nothing(test.path.get())
             ]
             for test in self.lock.testing.get()
         }
