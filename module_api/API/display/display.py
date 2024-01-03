@@ -76,3 +76,30 @@ class Display(lock.LockIO, Generic[T]):
     @staticmethod
     def changes_file_path(dir : pathlib.Path) -> pathlib.Path:
         return dir / lock.CaliciLock.DISPLAY_CHANGES_FILE
+    
+    def __del__(self):
+        """
+            Delete change_xxx.json file in display folder. 
+            This is called just in case a lot of data is not read after it 
+            has been generated.
+        """
+        parent_path = self.changes_path.parent
+        fname = self.changes_path.stem
+        files = list(parent_path.glob(f"{fname}_*.json"))
+        tmp_files = []
+        for file in files:
+            try:
+                tmp_files.append({
+                    'file':file,
+                    'order': int(file.stem.split("_")[-1])
+                })
+            except Exception:
+                pass
+
+        tmp_files.sort(key=lambda x: x['order'])
+        # delete files except last 10
+        for item in tmp_files[:-10]:
+            try:
+                item['file'].unlink()
+            except Exception:
+                pass
