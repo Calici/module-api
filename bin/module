@@ -67,8 +67,10 @@ if __name__ == '__main__':
     if len(action) == 0:
         raise RuntimeError("No action have been provided")
 
+    lock_exist = False
     try:
         lock_path = try_find_lock(pathlib.Path(os.getcwd()))
+        lock_exist = True
     except FileNotFoundError:
         lock_path = pathlib.Path(os.getcwd(), 'module.lock')
     resolved_lock_path = lock_path.resolve()
@@ -78,7 +80,13 @@ if __name__ == '__main__':
     lock.save()
     
     if action not in HANDLERS:
+        if not lock_exist:
+            lock_path.unlink(True)
         raise RuntimeError("{0} is not part of {1}".format(
             action, HANDLERS.keys()
         ))
-    exec_handlers(HANDLERS, action, lock)
+    try:
+        exec_handlers(HANDLERS, action, lock)
+    except:
+        if not lock_exist:
+            lock_path.unlink(True)
