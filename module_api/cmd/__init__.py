@@ -6,7 +6,8 @@ from .init import \
     InitWorkdirHandler
 from .container import \
     RunDocker, \
-    BuildDocker
+    BuildDocker, \
+    ContainerName
 from .testing import \
     TestRefresh, \
     TestAll, \
@@ -15,18 +16,19 @@ from .testing import \
     ResetAllTest
 
 __all__ = [
-  'InitDir', 
-  'InitDockerHandler',
-  'InitLock',
-  'InitManifestHandler',
-  'InitWorkdirHandler',
+    'InitDir', 
+    'InitDockerHandler',
+    'InitLock',
+    'InitManifestHandler',
+    'InitWorkdirHandler',
 
-  'RunDocker', 
-  'BuildDocker', 
+    'RunDocker', 
+    'BuildDocker', 
+    'ContainerName',
 
-  'TestRefresh', 
-  'TestAll', 
-  'TestList', 
-  'MakeTest', 
-  'ResetAllTest'
+    'TestRefresh', 
+    'TestAll', 
+    'TestList', 
+    'MakeTest', 
+    'ResetAllTest'
 ]

@@ -33,6 +33,7 @@ HANDLERS : HandlerMapT = {
     # Container
     "container.build" : BuildDocker, 
     "container.run" : RunDocker, 
+    "container.name" : ContainerName,
 
     # Update and Lock
     'refresh.lock' : [
