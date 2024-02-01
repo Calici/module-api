@@ -5,7 +5,7 @@ from setuptools import \
 
 setup(
     name='module-api',
-    version='0.0.43',    
+    version='1.0.0',    
     description='A Python Package to communicate with the module frontend and backend',
     url='https://github.com/calici/module-api',
     author='Jonathan Willianto',

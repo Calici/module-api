@@ -17,6 +17,5 @@ class LigandLibraryAPI:
             data = {
                 'count' : count, 'library' : library, 'category' : category
             },
-            headers = self.headers,
-            timeout = API_SENDING_TIMEOUT
+            headers = self.headers
         )
