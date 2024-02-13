@@ -13,12 +13,10 @@
     },
     "advanced": [{
       "display": "form",
-      "components": [],
       "fields": ["example_field"]
     }],
     "simple": [{
       "display": "form",
-      "components": [],
       "fields": ["example_field"]
     }]
   },
@@ -38,12 +36,10 @@
     },
     "advanced": [{
       "display": "form",
-      "components": [],
       "fields": ["example_field"]
     }],
     "simple": [{
       "display": "form",
-      "components": [],
       "fields": ["example_field"]
     }]
   },
