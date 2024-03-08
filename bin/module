@@ -41,7 +41,9 @@ HANDLERS : HandlerMapT = {
     # Update and Lock
     'refresh.lock' : [
         "test.refresh",
-    ]
+    ], 
+    'rename' : Rename,
+    'reversion' : Reversion
 }
 
 MAX_FIND_DEPTH = 10;

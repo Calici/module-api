@@ -1,12 +1,11 @@
 from module_api.cmd.base import \
     ModuleLock, \
     ActionHandler, \
-    Container
+    Container, \
+    confirm_or_exit
 from .build_docker import BuildDocker
 from .validate import ContainerValidate
 import subprocess
-import sys
-
 
 class ContainerDeploy(ActionHandler):
     def __init__(self, lock: ModuleLock, use_confirm: bool = True):
@@ -32,9 +31,7 @@ class ContainerDeploy(ActionHandler):
             print(f"Internal Name : {self.lock.module.internal_name.get()}")
             print(f"Version : {self.lock.module.version.get()}")
             print(f'Registry : {server_host}')
-            confirm = input("Is the above correct (Y/N) : ")
-            if confirm.strip().lower() != 'y':
-                sys.exit(0)
+            confirm_or_exit("Is the above correct")
         container_name = self.container.name()
         full_container_name = f'{server_host}/{container_name}'
         print("Running Container Build...")
