@@ -34,6 +34,9 @@ HANDLERS : HandlerMapT = {
     "container.build" : BuildDocker, 
     "container.run" : RunDocker, 
     "container.name" : ContainerName,
+    'container.validate' : ContainerValidate,
+    'container.deploy': ContainerDeploy,
+    'container.deploy.noconfirm': lambda lock: ContainerDeploy(lock, False),
 
     # Update and Lock
     'refresh.lock' : [
