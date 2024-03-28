@@ -11,11 +11,16 @@ class ErrorMessage(lock.LockSection):
     title = lock.LockField(type = str, default = '')
     content = lock.LockField(type = str, default = '')
     type = lock.LockField[ErrorT](type = str, default = 'ERROR')
-# Local Imports
-class ErrorBuffer(lock.LockIO):
+
+class ErrorBufferStruct(lock.LockIO):
+    """
+        Contains only the structure of ErroBuffer with no associated
+        implementation
+    """
     errors = lock.ListField(lock.SpreadKwargs(ErrorMessage), default = [])
     version = lock.LockField(type = str, default = "2.0")
-
+# Local Imports
+class ErrorBuffer(ErrorBufferStruct):
     def __init__(self, lock : lock.CaliciLock, version : str = "2.0"):
         super().__init__(lock.error_path(), version = version)
     # Override saving and loading to json

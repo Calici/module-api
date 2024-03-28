@@ -1,1 +1,6 @@
-from .error import ErrorBuffer
+from .error import ErrorBuffer, ErrorBufferStruct as Struct
+
+__all__ = [
+  'ErrorBuffer', 
+  'Struct'
+]
