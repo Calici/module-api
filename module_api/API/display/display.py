@@ -46,9 +46,8 @@ class Display(lock.LockIO, Generic[T]):
         self.lockfile.reload()
         is_connected = self.lockfile.status.is_connected.get()
         if is_connected:
-            self._thread_lock.acquire()
-            self.save_changes_file(build_dict)
-            self._thread_lock.release()
+            with self._fs_lock.lock():
+                self.save_changes_file(build_dict)
         lock.LockIO._save_file(self)
 
     # Set Certain Fields
