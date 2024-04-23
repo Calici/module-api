@@ -27,5 +27,8 @@ setup(
         "urllib3==2.0.7", 
         "pypharmaco @ https://github.com/Calici/pypharmaco/releases/download/v0.0.1/pypharmaco-0.0.1-py3-none-any.whl"
     ],
-    include_package_data = True
+    package_data = {
+        'API':['module_api/API/file_lock.so']
+    },
+    include_package_data = True,
 )

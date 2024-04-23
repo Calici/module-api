@@ -1,0 +1,3 @@
+[submodule "lib/file-lock"]
+	path = lib/file-lock
+	url = github.com:jowillianto/file-lock

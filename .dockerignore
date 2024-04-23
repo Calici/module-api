@@ -1,5 +1,5 @@
-build
-dist
+**build
+**dist
 module_api.egg-info
 .editorconfig
 .gitignore

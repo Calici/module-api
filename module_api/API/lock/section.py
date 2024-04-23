@@ -28,7 +28,8 @@ class LockSection(Section[LockBase], LockBase[Dict[str, Any]]):
             try:
                 self.get_field(field_name).set_value(field_value, changed)
             except KeyError:
-                pass
+                # Changed to accomodate for people who tried their best to not make a typo.
+                raise KeyError(f"Trying to set into non-existent field {field_name}")
         self.set_change(changed)
 
     def get(self):

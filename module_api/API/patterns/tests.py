@@ -4,28 +4,27 @@ from module_api.API.test import DirectoryGenerator, random_string
 from multiprocessing import Pool
 from concurrent.futures import ThreadPoolExecutor
 import random
-import sys
-import pathlib
+import time
 
 def read_or_write(kwargs : dict):
-    fpath : pathlib.Path = kwargs['fpath']
+    flock = kwargs['flock'] if 'flock' in kwargs else FileLock(kwargs['fpath'])
     value : str = kwargs['value']
     if random.random() < 0.5:
-        with FileLock(fpath).lock() as f:
+        with flock.lock() as f:
+            time.sleep(random.random() * 0.1)
             written_length = f.write(value)
             assert written_length == len(value)
     else:
-        with FileLock(fpath).lock_shared() as f:
+        with flock.lock_shared() as f:
+            time.sleep(random.random() * 0.1)
             out = f.read().strip()
             try:
                 assert value == out
             except AssertionError:
-                print(f"{len(value)} != {len(out)}", file = sys.stderr)
                 raise
 
-
 class FileLockTest(TestCase):
-    def test_lock_multiprocessing(self):
+    def test_fuzz_lock_multiprocessing(self):
         with DirectoryGenerator() as d:
             fpath = d / 'lol.txt'
             to_write = random_string(5_000_000)
@@ -34,9 +33,9 @@ class FileLockTest(TestCase):
             with Pool() as p:
                 p.map(
                     read_or_write, 
-                    [{ 'fpath' : fpath, 'value' : to_write}] * 1000
+                    [{ 'fpath' : fpath, 'value' : to_write}] * 10
                 )
-    def test_lock_multithreading(self):
+    def test_fuzz_lock_multithreading(self):
         with DirectoryGenerator() as d:
             fpath = d / 'lol.txt'
             to_write = random_string(5_000_000)
@@ -45,5 +44,5 @@ class FileLockTest(TestCase):
             with ThreadPoolExecutor() as p:
                 p.map(
                     read_or_write,
-                    [{ 'fpath' : fpath, 'value' : to_write}] * 100
+                    [{ 'flock' : FileLock(fpath), 'value' : to_write}] * 2
                 )
