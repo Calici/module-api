@@ -80,7 +80,7 @@ class Runnable(Generic[T], abc.ABC):
 V = TypeVar('V', bound = Runnable)
 def create(Runnable : Type[V]) -> V:
     parser = argparse.ArgumentParser()
-    parser.add_argument('--lock', type = str, help = 'path to the lock file')
+    parser.add_argument('--lock', type = pathlib.Path, help = 'path to the lock file')
     args = parser.parse_args()
     runnable = Runnable(args.lock)
     return runnable

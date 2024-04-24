@@ -97,7 +97,9 @@ class CaliciLock(LockIO):
     __reserved_file_path__  = '.reserved'
     DISPLAY_CHANGES_FILE    = 'changes.json'
     DISPLAY_MAIN_FILE       = 'main.json'
-    def __init__(self, file_path : Path, **kwargs):
+    def __init__(self, file_path : Path | str, **kwargs):
+        if isinstance(file_path, str):
+            file_path = Path(file_path)
         super().__init__(file_path, file_manager = CaliciLockFileManager(file_path), **kwargs)
     
     # Get display file path

@@ -34,7 +34,7 @@ class FileLockTest(TestCase):
             with Pool() as p:
                 p.map(
                     read_or_write, 
-                    [{ 'fpath' : fpath, 'value' : to_write}] * 10
+                    [{ 'fpath' : fpath, 'value' : to_write}] * 100
                 )
     def test_fuzz_lock_multithreading(self):
         with DirectoryGenerator() as d:
@@ -45,5 +45,5 @@ class FileLockTest(TestCase):
             with ThreadPoolExecutor() as p:
                 p.map(
                     read_or_write,
-                    [{ 'flock' : FileLock(fpath), 'value' : to_write}] * 2
+                    [{ 'flock' : FileLock(fpath), 'value' : to_write}] * 100
                 )

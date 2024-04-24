@@ -1,11 +1,10 @@
 # Library stuff
 import pathlib
 import json
-from typing_extensions import TypeVar, Generic, Dict, Any
+from typing_extensions import TypeVar, Generic, Dict, Any, IO
 
 # API Import
 import module_api.API.lock as lock
-from module_api.API.lock.utils import recursive_merge
 from module_api.API.patterns import FileLock
 
 
@@ -16,10 +15,6 @@ class DisplayFileManager(lock.LockFileManager):
         self.changes_base = self.file_path.parent / "changes"
         self.fname = self.changes_base.stem
         self.changes_lock = FileLock(self.changes_base)
-
-    def from_file(self) -> Dict[str, Any]:
-        with self.file_lock.lock_shared() as f:
-            return json.load(f)
 
     def write_incr_changes(self, changes: Dict[str, Any]):
         counter = 0
@@ -32,20 +27,22 @@ class DisplayFileManager(lock.LockFileManager):
                 change_path = parent_path / f"{self.fname}_{counter}"
                 counter += 1
             with open(change_path, "w") as f:
-                json.dump(changes, f)
+                self.dump(f, changes)
 
     def write_changes_to_file(self, changes: Dict[str, Any]) -> Dict[str, Any]:
         self.write_incr_changes(changes)
-        file_contents = self.from_file()
-        merged_contents = recursive_merge(changes, file_contents)
-        with self.file_lock.lock() as f:
-            json.dump(merged_contents, f)
-        return merged_contents
+        return super().write_changes_to_file(changes)
 
     def write_all_to_file(self, content: Dict[str, Any]):
         self.write_incr_changes(content)
-        with self.file_lock.lock() as f:
-            json.dump(content, f)
+        super().write_all_to_file(content)
+        
+    def load(self, f: IO):
+        return json.load(f)
+
+    def dump(self, f : IO, content : Any):
+        json.dump(content, f)
+        
 
 
 T = TypeVar("T", bound=lock.LockSection)

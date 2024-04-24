@@ -1,7 +1,7 @@
 # Library Imports
 import yaml
 import pathlib
-from typing_extensions import Dict, Any, Union
+from typing_extensions import Dict, Any, Union, IO
 
 # Local Imports
 from .section import LockSection
@@ -23,7 +23,7 @@ class LockFileManager:
         Gets the full contents from a file.
         """
         with self.file_lock.lock_shared() as f:
-            return yaml.safe_load(f)
+            return self.load(f)
 
     def write_changes_to_file(self, changes: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -33,7 +33,7 @@ class LockFileManager:
         file_contents = self.from_file()
         merged_contents = recursive_merge(changes, file_contents)
         with self.file_lock.lock() as f:
-            yaml.dump(merged_contents, f, default_flow_style=False)
+            self.dump(f, merged_contents)
         return merged_contents
 
     def write_all_to_file(self, content: Dict[str, Any]):
@@ -41,7 +41,12 @@ class LockFileManager:
         Write all of the contents to the file.
         """
         with self.file_lock.lock() as f:
-            yaml.dump(content, f, default_flow_style=False)
+            self.dump(f, content)
+    
+    def load(self, f : IO):
+        return yaml.safe_load(f)
+    def dump(self, f : IO, content : Any):
+        yaml.dump(content, f, default_flow_style = False)
 
 
 class LockIO(LockSection):
