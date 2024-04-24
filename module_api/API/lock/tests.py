@@ -5,11 +5,12 @@ from .field import  LockField
 from .list import ListField
 from .section import LockSection
 from .file import LockIO
-from .calici import LockHeader, LockStatus
+from .calici import LockHeader, LockStatus, CaliciLock
 from .type import TypeField, SpreadKwargs
 from .tuple import TupleField
 from typing_extensions import List
-
+from module_api.API.test import DirectoryGenerator
+import yaml
 class TestField(unittest.TestCase):
     def test_initialize(self):
         field   = LockField(float, 0.0)
@@ -334,3 +335,27 @@ class TestTupleField(unittest.TestCase):
             field.serialize(), ["Hello", "World", "Light"]
         )
     
+class CaliciLockTest(unittest.TestCase):
+    def test_init_params(self):
+        with DirectoryGenerator(pathlib.Path('./tmp')) as d:
+            lock = CaliciLock(d / 'haha.lock', params = {'a' : 2})
+            content = lock.file_manager.from_file()
+            self.assertEqual(content['params']['a'], 2)
+
+    def test_init_and_set_params(self):
+        with DirectoryGenerator(pathlib.Path('./tmp')) as d:
+            lock = CaliciLock(d / 'haha.lock', params = {'a' : 2})
+            content = lock.file_manager.from_file()
+            self.assertEqual(content['params']['a'], 2)
+            lock.set(params = {'a' : 3})
+            content = lock.file_manager.from_file()
+            self.assertEqual(content['params']['a'], 3)
+    
+    def test_init_normal_field(self):
+        with DirectoryGenerator(pathlib.Path('./tmp')) as d:
+            lock = CaliciLock(d / 'haha.lock', header = {'workdir' : d})
+            content = lock.file_manager.from_file()
+            self.assertEqual(content['header']['workdir'], str(d))
+            lock.set(header = {'workdir' : d / 'lol'})
+            content = lock.file_manager.from_file()
+            self.assertEqual(content['header']['workdir'], str(d / 'lol'))
