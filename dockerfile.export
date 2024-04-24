@@ -37,6 +37,7 @@ RUN python3 -m unittest module_api.API.patterns.tests
 RUN python3 -m unittest module_api.API.display.tests
 RUN python3 -m unittest module_api.API.timer.tests
 RUN python3 -m unittest module_api.API.runnable.tests
+RUN python3 -m unittest module_api.API.error.tests
 
 RUN pip install wheel
 WORKDIR /app
