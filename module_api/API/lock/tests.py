@@ -8,6 +8,7 @@ from .file import LockIO
 from .calici import LockHeader, LockStatus
 from .type import TypeField, SpreadKwargs
 from .tuple import TupleField
+from typing_extensions import List
 
 class TestField(unittest.TestCase):
     def test_initialize(self):
@@ -280,7 +281,7 @@ class TestListField(unittest.TestCase):
     def test_list_in_list(self):
         field = ListField(
             TypeField(ListField, TypeField(LockField, str)), #type: ignore
-            [["a", "b", "c"], ["d", "e", "f"], ["g", "h", "i"]]
+            [["a", "b", "c"], ["d", "e", "f"], ["g", "h", "i"]] #type: ignore
         )
         entries = field.get()
         self.assertTrue(isinstance(entries[0], ListField))
@@ -289,12 +290,12 @@ class TestListField(unittest.TestCase):
     def test_list_in_list_append(self):
         field = ListField(
             TypeField(ListField, TypeField(LockField, str)), #type: ignore
-            [["a", "b", "c"], ["d", "e", "f"], ["g", "h", "i"]]
+            [["a", "b", "c"], ["d", "e", "f"], ["g", "h", "i"]] #type: ignore
         )
-        field.append(["a", "b", "c"])
+        field.append(["a", "b", "c"]) #type: ignore
         entries = field.get()
         last_field = entries.pop()
-        self.assertEqual(last_field.serialize(), ["a", "b", "c"])
+        self.assertEqual(last_field.serialize(), ["a", "b", "c"]) #type: ignore
 
     def test_list_with_object(self):
         class SomeObject(LockSection):

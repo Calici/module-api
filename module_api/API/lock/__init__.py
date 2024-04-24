@@ -8,7 +8,8 @@ from .calici import \
   CaliciLock, \
   LockHeader, \
   LockStatus, \
-  LockIOStatusType
+  LockIOStatusType, \
+  LockFileManager
 from .type import \
   TypeField, \
   SpreadKwargs
@@ -26,5 +27,6 @@ __all__ = [
     'LockStatus', 
     'LockIOStatusType', 
     'TypeField', 
-    'SpreadKwargs'
+    'SpreadKwargs', 
+    'LockFileManager'
 ]

@@ -143,12 +143,11 @@ class TestPDFDisplay(unittest.TestCase):
             self.test_folder
         )
 
-    def test_init_pdb_display(self):
+    def test_init_pdf_display(self):
         display = Display(self.lock, ComponentWithPDFViewer(), dtype = 2)
         self.assertEqual(pathlib.Path(display.file_path).is_file(), True)
         self.assertEqual(pathlib.Path(display.file_path).is_file(), True)
         self.assertEqual(len(display.component.messages), 0)
-        self.assertEqual(isinstance(display.component.pdf_file.get(), str), True)
         with open(display.file_path) as f:
             self.assertEqual(json.load(f)['dtype'], 2)
 

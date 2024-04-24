@@ -18,7 +18,7 @@ RUN CXX=clang++-18 cmake \
   -GNinja \
   -DPython3_EXECUTABLE=/usr/bin/python${PYTHON_VERSION} \
   -DPYBIND11_PYTHON_VERSION=${PYTHON_VERSION} \
-  -DCMAKE_BUILD_TYPE=Release .
+  -DCMAKE_BUILD_TYPE=Release .d
 WORKDIR /app/file-lock/build
 
 # Build Python
@@ -34,6 +34,10 @@ RUN pip install .
 WORKDIR /
 RUN python3 -m unittest module_api.API.lock.tests
 RUN python3 -m unittest module_api.API.patterns.tests
+RUN python3 -m unittest module_api.API.display.tests
+RUN python3 -m unittest module_api.API.timer.tests
+RUN python3 -m unittest module_api.API.runnable.tests
+
 RUN pip install wheel
 WORKDIR /app
 RUN python3 setup.py bdist_wheel

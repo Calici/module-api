@@ -1,81 +1,110 @@
 # Library Imports
 import yaml
 import pathlib
-from typing_extensions import IO
+from typing_extensions import Dict, Any, Union
+
 # Local Imports
 from .section import LockSection
 from .utils import recursive_merge
 from module_api.API.patterns import FileLock
 
-class LockIO(LockSection):
-    FORCE_READ_TIMEOUT  = 0.2
-    FORCE_READ_TRIAL    = 10
-    def __init__(self, file_path   : pathlib.Path, **kwargs):
-        # Initialize things important for FileIO
-        self.file_path = pathlib.Path(file_path)
-        new_file = not self.file_path.exists()
-        # Prevent multi threaded and multi processed error.
-        self._fs_lock = FileLock(self.file_path)
-        super().__init__(**kwargs)
-        # File IO
-        self._init_file(new_file, self.file_path)
-        self.set_value(kwargs, False)
 
-    # Initialize the file for use with the API
-    def _init_file(self, new : bool, path : pathlib.Path):
-        if new:
-            path.parent.mkdir(exist_ok = True, parents = True)
-            with self._fs_lock.lock() as f: 
-                self.dumper(f, self.serialize())
+class LockFileManager:
+    def __init__(self, file_path: pathlib.Path):
+        """
+        This will initialize the LockFileManager and assigns two properties,
+        file_path, file_lock
+        """
+        self.file_path = file_path
+        self.file_lock = FileLock(self.file_path)
+
+    def from_file(self) -> Dict[str, Any]:
+        """
+        Gets the full contents from a file.
+        """
+        with self.file_lock.lock_shared() as f:
+            return yaml.safe_load(f)
+
+    def write_changes_to_file(self, changes: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Write only the changed part of the content to the file. This will mutate changes and
+        return.
+        """
+        file_contents = self.from_file()
+        merged_contents = recursive_merge(changes, file_contents)
+        with self.file_lock.lock() as f:
+            yaml.dump(merged_contents, f, default_flow_style=False)
+        return merged_contents
+
+    def write_all_to_file(self, content: Dict[str, Any]):
+        """
+        Write all of the contents to the file.
+        """
+        with self.file_lock.lock() as f:
+            yaml.dump(content, f, default_flow_style=False)
+
+
+class LockIO(LockSection):
+    FORCE_READ_TIMEOUT = 0.2
+    FORCE_READ_TRIAL = 10
+
+    def __init__(
+        self,
+        file_path: Union[pathlib.Path, str],
+        file_manager: Union[LockFileManager, None] = None,
+        **kwargs,
+    ):
+        # Initialize File Path
+        if isinstance(file_path, str):
+            file_path = pathlib.Path(file_path)
+        self.file_path = file_path
+
+        # Initialize the manager
+        if file_manager is None:
+            file_manager = LockFileManager(self.file_path)
+        self.file_manager = file_manager
+
+        # Check if a new file is going to be created
+        super().__init__(**kwargs)
+        # Initialize the current lock state.
+        self._init_file(**kwargs)
+
+    def _init_file(self, **kwargs):
+        """
+        Synchronizes between the state of the file and the current state of the object
+        """
+        if self.file_path.exists():
+            file_values = self.file_manager.from_file()
+            file_values.update(kwargs)
+            # Write the current values after overriden by kwargs
+            self.set_value(file_values, False)
         else:
-            self._init_value()
+            # Kwargs have been written to self.
+            value_to_write = self.serialize()
+            self.file_manager.write_all_to_file(value_to_write)
+
+    def reload(self):
+        """
+        Reloads the lock file from the file.
+        """
+        if self.file_exists():
+            self.set_value(self.file_manager.from_file(), False)
 
     # Set value with saving to file
     def set(self, **kwargs):
         super().set(**kwargs)
-        self._save_file()
-
-    # save the file values
-    def _save_file(self):
-        # Build dictionary
-        build_dict  = self.serialize_changes()
-        # Block update if empty
-        if build_dict == {}:
-            return 
-        conf = self._file_values()
-        conf = recursive_merge(build_dict, conf)
-        with self._fs_lock.lock() as f:
-            self.dumper(f, conf)
-        # Set the values from the file
-        self.set_value(conf, False)
-        self.flush()
+        self.save()
 
     def save(self):
-        self._save_file()
-
-    # Get values from file and save it
-    def _file_values(self) -> dict:
-        with self._fs_lock.lock_shared() as f:
-            conf    = self.loader(f)
-        return conf
-
-    # Initialize values
-    def _init_value(self):
-        conf    = self._file_values()
-        self.set_value(conf, False)
-
-    # Reload Config
-    def reload(self):
-        if self.file_exists():
-            self._init_value()
+        # Build dictionary
+        build_dict = self.serialize_changes()
+        # Block update if empty
+        if build_dict == {}:
+            return
+        merged_value = self.file_manager.write_changes_to_file(build_dict)
+        self.set_value(merged_value, False)
+        self.flush()
 
     # Check file exists
     def file_exists(self):
         return self.file_path.exists()
-
-    # OVERRIDE THIS TO CHANGE THE LOADER AND THE DUMPER OR HOW THEY WORK
-    def loader(self, f : IO[str]):
-        return yaml.safe_load(f)
-    
-    def dumper(self, f : IO[str], data : dict):
-        return yaml.dump(data, f, default_flow_style = False)

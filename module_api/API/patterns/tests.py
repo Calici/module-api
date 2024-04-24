@@ -3,6 +3,7 @@ from .file_lock import FileLock
 from module_api.API.test import DirectoryGenerator, random_string
 from multiprocessing import Pool
 from concurrent.futures import ThreadPoolExecutor
+from module_api.API.lock import CaliciLock
 import random
 import time
 
