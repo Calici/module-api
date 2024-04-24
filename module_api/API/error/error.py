@@ -13,40 +13,23 @@ class ErrorMessage(lock.LockSection):
     content = lock.LockField(type=str, default="")
     type = lock.LockField[ErrorT](type=str, default="ERROR")
 
-
-class ErrorBufferStruct(lock.LockIO):
-    """
-    Contains only the structure of ErroBuffer with no associated
-    implementation
-    """
-
-    errors = lock.ListField(lock.SpreadKwargs(ErrorMessage), default=[])
-    version = lock.LockField(type=str, default="2.0")
-
-
 class ErrorFileManager(lock.LockFileManager):
     def load(self, f: IO):
         return json.load(f)
-
     def dump(self, f: IO, content):
         json.dump(content, f)
 
 
 # Local Imports
-class ErrorBuffer(ErrorBufferStruct):
+class ErrorBuffer(lock.LockIO):
+    errors = lock.ListField(lock.SpreadKwargs(ErrorMessage), default=[])
+    version = lock.LockField(type=str, default="2.0")
     def __init__(self, lock: lock.CaliciLock, version: str = "2.0"):
         super().__init__(
             lock.error_path(),
             file_manager=ErrorFileManager(lock.error_path()),
             version=version,
         )
-
-    # Override saving and loading to json
-    def loader(self, f: IO[str]):
-        return json.load(f)
-
-    def dumper(self, f: IO[str], data: dict):
-        return json.dump(data, f)
 
     # Others
     def add_entry(
