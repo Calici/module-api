@@ -16,12 +16,11 @@ class TestError(unittest.TestCase):
             )
             buffer = ErrorBuffer(lock_file)
             buffer.add_entry("Error", "Error")
-            with open(buffer.file_path, 'r') as f:
-                content = json.load(f)
-                error = content['errors'][0]
-                self.assertEqual(error['type'], 'ERROR')
-                self.assertEqual(error['title'], 'Error')
-                self.assertEqual(error['content'], 'Error')
+            content = buffer.file_manager.from_file()
+            error = content['errors'][0]
+            self.assertEqual(error['type'], 'ERROR')
+            self.assertEqual(error['title'], 'Error')
+            self.assertEqual(error['content'], 'Error')
 
 
     def test_warning_test(self):
@@ -34,13 +33,12 @@ class TestError(unittest.TestCase):
             )
             buffer = ErrorBuffer(lock_file)
             buffer.add_entry("Error", "Error", "WARNING")
-            with open(buffer.file_path, 'r') as f:
-                content = json.load(f)
-                error = content['errors'][0]
-                self.assertEqual(content, buffer.serialize())
-                self.assertEqual(content['errors'][0]['type'], 'WARNING')
-                self.assertEqual(error['title'], 'Error')
-                self.assertEqual(error['content'], 'Error')
+            content = buffer.file_manager.from_file()
+            error = content['errors'][0]
+            self.assertEqual(content, buffer.serialize())
+            self.assertEqual(content['errors'][0]['type'], 'WARNING')
+            self.assertEqual(error['title'], 'Error')
+            self.assertEqual(error['content'], 'Error')
     
     def test_multiple_test(self):
         with generate_test_fd() as tmp_fd:
@@ -64,15 +62,13 @@ class TestError(unittest.TestCase):
                 buffer.add_entry(title, content, 'WARNING' if id % 2 == 0 else 'ERROR', False)
             # Save at last
             buffer.save()
-
-            with open(buffer.file_path, 'r') as f:
-                content = json.load(f)
-                read_errors = content['errors']
-                for id, error in enumerate(read_errors):
-                    title = error['title']
-                    content = error['content']
-                    self.assertEqual(title, errors[id][0])
-                    self.assertEqual(content, errors[id][1])
-                    self.assertEqual(
-                        error['type'], 'WARNING' if id % 2 == 0 else 'ERROR'
-                    )
+            content = buffer.file_manager.from_file()
+            read_errors = content['errors']
+            for id, error in enumerate(read_errors):
+                title = error['title']
+                content = error['content']
+                self.assertEqual(title, errors[id][0])
+                self.assertEqual(content, errors[id][1])
+                self.assertEqual(
+                    error['type'], 'WARNING' if id % 2 == 0 else 'ERROR'
+            )
