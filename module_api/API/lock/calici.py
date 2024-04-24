@@ -8,12 +8,8 @@ from .field import LockField
 from .list import ListField
 from .section import LockSection
 from module_api.common.other_lib import get_current_time
-from .utils import recursive_merge
 from .type import SpreadKwargs
 from typing_extensions import Dict, Any
-from module_api.API.patterns import FileLock
-import yaml
-
 # Conditions of the running process
 class LockIOStatusType:
     STOP                = 'STOP'
@@ -70,13 +66,17 @@ class CaliciLockFileManager(LockFileManager):
 
     def from_file(self) -> Dict[str, Any]:
         all_but_params = super().from_file()
-        all_but_params.update(self.params_file_manager.from_file())
+        all_but_params.update({
+            'params' : self.params_file_manager.from_file()
+        })
         return all_but_params
     
     def write_changes_to_file(self, changes: Dict[str, Any]) -> Dict[str, Any]:
         params_changes = changes.pop('params', None)
         if params_changes is not None:
-            merged_params = self.params_file_manager.write_changes_to_file(params_changes)
+            merged_params = {
+                'params' : self.params_file_manager.write_changes_to_file(params_changes)
+            }
         else:
             merged_params = {}
         # At this point, it had been removed before. 
@@ -84,8 +84,9 @@ class CaliciLockFileManager(LockFileManager):
         return merged_params
 
     def write_all_to_file(self, content: Dict[str, Any]):
-        params = content.pop('params')
-        self.params_file_manager.write_all_to_file(params)
+        params = content.pop('params', None)
+        if params is not None:
+            self.params_file_manager.write_all_to_file(params)
         super().write_all_to_file(content)
 class CaliciLock(LockIO):
     header      = LockHeader()
