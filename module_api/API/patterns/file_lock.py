@@ -11,6 +11,7 @@ import pathlib
 class FileLock:
     def __init__(self, target_file : pathlib.Path, is_binary : bool = False):
         self.target_file = target_file
+        self.target_file.parent.mkdir(exist_ok = True, parents = True)
         self.is_binary = is_binary
         self.mutex = FileMutex(str(self.target_file))
     
