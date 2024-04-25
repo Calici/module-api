@@ -30,7 +30,7 @@ setup(
         "requests>=2.31.0",
         "typing_extensions>=4.7.1",
         "urllib3>=2.0.7",
-        "pypharmaco @ https://github.com/Calici/pypharmaco/releases/download/v0.0.1/pypharmaco-0.0.1-py3-none-any.whl",
+        "pypharmaco>=0.0.2",
     ],
     include_package_data=True,
     distclass = BinaryDistribution
