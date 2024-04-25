@@ -31,18 +31,37 @@ class FileLock:
         return WithPattern( self._lock_shared, self._unlock_shared)
 
     def _lock_shared(self) -> IO:
+        """
+            Internal Locks that guarantee exception freedom for file locking. 
+        """
         self.mutex.lock_shared()
         if self.is_binary:
-            return open(self.target_file, 'rb')
+            try:
+                return open(self.target_file, 'rb')
+            except:
+                self.mutex.unlock_shared()
+                raise
         else:
-            return open(self.target_file, 'r')
+            try:
+                return open(self.target_file, 'r')
+            except:
+                self.mutex.unlock_shared()
+                raise
 
     def _lock(self) -> IO:
         self.mutex.lock()
         if self.is_binary:
-            return open(self.target_file, 'wb')
+            try:
+                return open(self.target_file, 'wb')
+            except:
+                self.mutex.unlock()
+                raise
         else:
-            return open(self.target_file, 'w')
+            try:
+                return open(self.target_file, 'w')
+            except:
+                self.mutex.unlock()
+                raise
         
     def _unlock_shared(self, io : IO):
         """

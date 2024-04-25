@@ -340,7 +340,14 @@ class CaliciLockTest(unittest.TestCase):
         with DirectoryGenerator(pathlib.Path('./tmp')) as d:
             lock = CaliciLock(d / 'haha.lock', params = {'a' : 2})
             content = lock.file_manager.from_file()
-            self.assertEqual(content['params']['a'], 2)
+            params = content.pop('params')
+            self.assertEqual(params['a'], 2)
+    
+    def test_check_params_not_in_main(self):
+        with DirectoryGenerator(pathlib.Path('./tmp')) as d:
+            lock = CaliciLock(d / 'haha.lock', params = {'a' : 2})
+            with open(lock.file_path, 'r') as f:
+                self.assertTrue('params' not in yaml.safe_load(f))
 
     def test_init_and_set_params(self):
         with DirectoryGenerator(pathlib.Path('./tmp')) as d:
@@ -350,6 +357,16 @@ class CaliciLockTest(unittest.TestCase):
             lock.set(params = {'a' : 3})
             content = lock.file_manager.from_file()
             self.assertEqual(content['params']['a'], 3)
+        
+    def test_check_value_eq(self):
+        with DirectoryGenerator(pathlib.Path('./tmp')) as d:
+            lock = CaliciLock(d / 'haha.lock', params = {'a' : 2})
+            content = lock.file_manager.from_file()
+            from_lock = lock.serialize()
+            params = content.pop('params')
+            lock_params = from_lock.pop('params')
+            self.assertDictEqual(from_lock, content)
+            self.assertDictEqual(params, lock_params)
     
     def test_init_normal_field(self):
         with DirectoryGenerator(pathlib.Path('./tmp')) as d:

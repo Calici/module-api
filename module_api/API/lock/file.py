@@ -82,7 +82,8 @@ class LockIO(LockSection):
             file_values = self.file_manager.from_file()
             file_values.update(kwargs)
             # Write the current values after overriden by kwargs
-            self.set_value(file_values, False)
+            # Ignore nonexistent fields, i.e. keep the fields we set but ignore fields set by others.
+            self.set_value(file_values, False, True)
         else:
             # Kwargs have been written to self.
             value_to_write = self.serialize()
@@ -93,7 +94,7 @@ class LockIO(LockSection):
         Reloads the lock file from the file.
         """
         if self.file_exists():
-            self.set_value(self.file_manager.from_file(), False)
+            self.set_value(self.file_manager.from_file(), False, True)
 
     # Set value with saving to file
     def set(self, **kwargs):
