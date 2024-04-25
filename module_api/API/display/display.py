@@ -9,11 +9,12 @@ from module_api.API.patterns import FileLock
 
 
 class DisplayFileManager(lock.LockFileManager):
-    def __init__(self, file_path: pathlib.Path):
+    def __init__(self, file_path: pathlib.Path, lock : lock.CaliciLock):
         super().__init__(file_path)
         # We will protect the changes set with a lock file.
         self.changes_base = self.file_path.parent / "changes"
         self.fname = self.changes_base.stem
+        self.lock = lock
         self.changes_lock = FileLock(self.changes_base)
 
     def write_incr_changes(self, changes: Dict[str, Any]):
@@ -30,11 +31,17 @@ class DisplayFileManager(lock.LockFileManager):
                 self.dump(f, changes)
 
     def write_changes_to_file(self, changes: Dict[str, Any]) -> Dict[str, Any]:
-        self.write_incr_changes(changes)
+        # Write incremental changes if connected
+        self.lock.reload()
+        if self.lock.status.is_connected.get():
+            self.write_incr_changes(changes)
         return super().write_changes_to_file(changes)
 
     def write_all_to_file(self, content: Dict[str, Any]):
-        self.write_incr_changes(content)
+        # Write incremental changes if connected
+        self.lock.reload()
+        if self.lock.status.is_connected.get():
+            self.write_incr_changes(content)
         super().write_all_to_file(content)
         
     def load(self, f: IO):
@@ -57,7 +64,7 @@ class Display(lock.LockIO, Generic[T]):
         file_path = self.full_file_path(lock.display_path())
         super().__init__(
             self.full_file_path(lock.display_path()),
-            file_manager=DisplayFileManager(file_path),
+            file_manager=DisplayFileManager(file_path, lock),
             **kwargs,
         )
         self.lockfile = lock

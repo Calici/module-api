@@ -9,7 +9,7 @@ class BinaryDistribution(Distribution):
 
 setup(
     name="module-api",
-    version="1.2.1",
+    version="1.2.2",
     description="A Python Package to communicate with the module frontend and backend",
     url="https://github.com/calici/module-api",
     author="Jonathan Willianto",
