@@ -30,7 +30,7 @@ COPY ./module_api /app/module_api
 COPY ./MANIFEST.in /app/MANIFEST.in
 COPY --from=compile /app/file-lock/build/file_lock.so /app/module_api/API/file_lock.so
 WORKDIR /app
-RUN pip install .
+RUN pip install . --extra-index-url=https://pypi.cal-tb01.ddnsfree.com
 WORKDIR /
 RUN python3 -m unittest module_api.API.lock.tests
 RUN python3 -m unittest module_api.API.patterns.tests
