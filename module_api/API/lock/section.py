@@ -36,11 +36,13 @@ class LockSection(Section[LockBase], LockBase[Dict[str, Any]]):
                 if field_name in self.field_names()
             }
         for field_name, field_value in value.items():
-            try:
-                self.get_field(field_name).set_value(field_value, changed)
-            except KeyError:
-                # Changed to accomodate for people who tried their best to not make a typo.
-                raise KeyError(f"Trying to set into non-existent field {field_name}")
+            field = self.get_field(field_name)
+            # Propagate ignore_nonexistent down the tree. Ignore nonexistent if the lock field
+            # is a field since it has no meaning.
+            if isinstance(field, LockSection):
+                field.set_value(field_value, changed, ignore_nonexistent)
+            else:
+                field.set_value(field_value, changed)
         self.set_change(changed)
 
     def get(self):

@@ -336,6 +336,14 @@ class TestTupleField(unittest.TestCase):
         )
     
 class CaliciLockTest(unittest.TestCase):
+    def test_write_more_fields_than_allowed(self):
+        with DirectoryGenerator(pathlib.Path('./tmp')) as d:
+            fpath = d / 'haha.lock'
+            with open(fpath, 'w') as f:
+                yaml.dump({'status' : {'lol' : 'lol'}}, f)
+            with open(fpath.parent / 'params.yml', 'w') as f:
+                yaml.dump({}, f)
+            CaliciLock(fpath)
     def test_init_params(self):
         with DirectoryGenerator(pathlib.Path('./tmp')) as d:
             lock = CaliciLock(d / 'haha.lock', params = {'a' : 2})

@@ -108,7 +108,7 @@ class LockIO(LockSection):
         if build_dict == {}:
             return
         merged_value = self.file_manager.write_changes_to_file(build_dict)
-        self.set_value(merged_value, False)
+        self.set_value(merged_value, False, True)
         self.flush()
 
     # Check file exists
