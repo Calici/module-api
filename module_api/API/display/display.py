@@ -7,15 +7,18 @@ from typing_extensions import TypeVar, Generic, Dict, Any, IO
 import module_api.API.lock as lock
 from module_api.API.patterns import FileLock
 
-
 class DisplayFileManager(lock.LockFileManager):
-    def __init__(self, file_path: pathlib.Path, lock : lock.CaliciLock):
-        super().__init__(file_path)
+    def __init__(self, file_path: pathlib.Path, lock_file : lock.CaliciLock):
+        self.main_file = lock.JsonLockFileManager(file_path)
+        self.file_path = file_path
         # We will protect the changes set with a lock file.
         self.changes_base = self.file_path.parent / "changes"
         self.fname = self.changes_base.stem
-        self.lock = lock
+        self.lock = lock_file
         self.changes_lock = FileLock(self.changes_base)
+    
+    def from_file(self) -> Dict[str, Any]:
+        return self.main_file.from_file()
 
     def write_incr_changes(self, changes: Dict[str, Any]):
         counter = 0
@@ -28,33 +31,23 @@ class DisplayFileManager(lock.LockFileManager):
                 change_path = parent_path / f"{self.fname}_{counter}"
                 counter += 1
             with open(change_path, "w") as f:
-                self.dump(f, changes)
+                json.dump(changes, f)
 
     def write_changes_to_file(self, changes: Dict[str, Any]) -> Dict[str, Any]:
         # Write incremental changes if connected
         self.lock.reload()
         if self.lock.status.is_connected.get():
             self.write_incr_changes(changes)
-        return super().write_changes_to_file(changes)
+        return self.main_file.write_changes_to_file(changes)
 
     def write_all_to_file(self, content: Dict[str, Any]):
         # Write incremental changes if connected
         self.lock.reload()
         if self.lock.status.is_connected.get():
             self.write_incr_changes(content)
-        super().write_all_to_file(content)
+        self.main_file.write_all_to_file(content)
         
-    def load(self, f: IO):
-        return json.load(f)
-
-    def dump(self, f : IO, content : Any):
-        json.dump(content, f)
-        
-
-
 T = TypeVar("T", bound=lock.LockSection)
-
-
 class Display(lock.LockIO, Generic[T]):
     dtype = lock.LockField(type=int, default=0)
     component: T

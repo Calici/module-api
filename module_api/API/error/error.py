@@ -1,6 +1,5 @@
 # Library Import
-import json
-from typing_extensions import IO, Literal
+from typing_extensions import Literal
 
 # API Import
 import module_api.API.lock as lock
@@ -12,22 +11,14 @@ class ErrorMessage(lock.LockSection):
     title = lock.LockField(type=str, default="")
     content = lock.LockField(type=str, default="")
     type = lock.LockField[ErrorT](type=str, default="ERROR")
-
-class ErrorFileManager(lock.LockFileManager):
-    def load(self, f: IO):
-        return json.load(f)
-    def dump(self, f: IO, content):
-        json.dump(content, f)
-
-
 # Local Imports
 class ErrorBuffer(lock.LockIO):
     errors = lock.ListField(lock.SpreadKwargs(ErrorMessage), default=[])
     version = lock.LockField(type=str, default="2.0")
-    def __init__(self, lock: lock.CaliciLock, version: str = "2.0"):
+    def __init__(self, lock_file: lock.CaliciLock, version: str = "2.0"):
         super().__init__(
-            lock.error_path(),
-            file_manager=ErrorFileManager(lock.error_path()),
+            lock_file.error_path(),
+            file_manager=lock.JsonLockFileManager(lock_file.error_path()),
             version=version,
         )
 

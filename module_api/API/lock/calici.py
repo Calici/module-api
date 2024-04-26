@@ -3,7 +3,8 @@ from datetime import datetime
 from pathlib import Path
 
 # Local Imports
-from .file import LockIO, LockFileManager
+from .file import LockIO
+from .lock_file_manager import LockFileManager, YamlLockFileManager
 from .field import LockField
 from .list import ListField
 from .section import LockSection
@@ -60,12 +61,16 @@ class LockHeader(LockSection):
     gpu_blocks  = ListField(SpreadKwargs(GPUStatus), [])
 
 class CaliciLockFileManager(LockFileManager):
+    """
+        Specializes to write params.yml into a new file instead of accumulating it in the lock file.
+    """
     def __init__(self, file_path: Path):
-        super().__init__(file_path)
-        self.params_file_manager = LockFileManager(self.file_path.parent / 'params.yml')
+        self.file_path = file_path
+        self.main_file_manager = YamlLockFileManager(file_path)
+        self.params_file_manager = YamlLockFileManager(file_path.parent / 'params.yml')
 
     def from_file(self) -> Dict[str, Any]:
-        all_but_params = super().from_file()
+        all_but_params = self.main_file_manager.from_file()
         all_but_params.update({
             'params' : self.params_file_manager.from_file()
         })
@@ -79,15 +84,16 @@ class CaliciLockFileManager(LockFileManager):
             }
         else:
             merged_params = {}
-        # At this point, it had been removed before. 
-        merged_params.update(super().write_changes_to_file(changes))
+        # At this point, it had been removed before.
+        merged_params.update(self.main_file_manager.write_changes_to_file(changes))
         return merged_params
 
     def write_all_to_file(self, content: Dict[str, Any]):
         params = content.pop('params', None)
         if params is not None:
             self.params_file_manager.write_all_to_file(params)
-        super().write_all_to_file(content)
+        self.main_file_manager.write_all_to_file(content)
+
 class CaliciLock(LockIO):
     header      = LockHeader()
     status      = LockStatus()

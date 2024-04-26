@@ -356,6 +356,9 @@ class CaliciLockTest(unittest.TestCase):
             lock = CaliciLock(d / 'haha.lock', params = {'a' : 2})
             with open(lock.file_path, 'r') as f:
                 self.assertTrue('params' not in yaml.safe_load(f))
+            lock.set(params = {'a' : 3})
+            with open(lock.file_path, 'r') as f:
+                self.assertTrue('params' not in yaml.safe_load(f))
 
     def test_init_and_set_params(self):
         with DirectoryGenerator(pathlib.Path('./tmp')) as d:
