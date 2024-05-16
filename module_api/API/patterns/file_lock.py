@@ -4,7 +4,7 @@
 """
 from __future__ import annotations
 from .with_pattern import WithPattern
-from typing_extensions import IO
+from typing_extensions import IO, Literal
 from module_api.API.file_lock import FileMutex
 import pathlib
 
@@ -15,13 +15,13 @@ class FileLock:
         self.is_binary = is_binary
         self.mutex = FileMutex(str(self.target_file))
     
-    def lock(self) -> WithPattern[IO]:
+    def lock(self, mode : Literal['w', 'a', 'a+'] = 'w') -> WithPattern[IO]:
         """
             Usage : 
             with FileLock(some_file).lock() as f:
         """
-        return WithPattern( self._lock, self._unlock )
-
+        return WithPattern( lambda: self._lock(mode), self._unlock )
+    
     def lock_shared(self) -> WithPattern[IO]:
         """
             Usage : 
@@ -35,33 +35,21 @@ class FileLock:
             Internal Locks that guarantee exception freedom for file locking. 
         """
         self.mutex.lock_shared()
-        if self.is_binary:
-            try:
-                return open(self.target_file, 'rb')
-            except:
-                self.mutex.unlock_shared()
-                raise
-        else:
-            try:
-                return open(self.target_file, 'r')
-            except:
-                self.mutex.unlock_shared()
-                raise
+        mode = 'rb' if self.is_binary else 'r'
+        try:
+            return open(self.target_file, mode)
+        except:
+            self.mutex.unlock_shared()
+            raise
 
-    def _lock(self) -> IO:
+    def _lock(self, mode : str) -> IO:
         self.mutex.lock()
-        if self.is_binary:
-            try:
-                return open(self.target_file, 'wb')
-            except:
-                self.mutex.unlock()
-                raise
-        else:
-            try:
-                return open(self.target_file, 'w')
-            except:
-                self.mutex.unlock()
-                raise
+        mode = f'{mode}b' if self.is_binary else mode
+        try:
+            return open(self.target_file, mode)
+        except:
+            self.mutex.unlock()
+            raise
         
     def _unlock_shared(self, io : IO):
         """

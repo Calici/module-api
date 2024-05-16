@@ -5,6 +5,23 @@ import yaml
 import pathlib
 import json
 
+class ReaderWriter(Protocol):
+    def load(self, f : IO) -> Any:
+        ...
+    def dump(self,f : IO, content : Any):
+        ...
+
+class YamlReaderWriter(ReaderWriter):
+    def load(self, f : IO):
+        return yaml.safe_load(f)
+    def dump(self, f : IO, content : Any):
+        return yaml.dump(content, f, default_flow_style = False)
+
+class JsonReaderWriter(ReaderWriter):
+    def load(self, f : IO):
+        return json.load(f)
+    def dump(self, f : IO, content : Any):
+        return json.dump(content, f)
 class LockFileManager(Protocol):
     file_path : pathlib.Path
     def from_file(self) -> Dict[str, Any]:
@@ -21,24 +38,30 @@ class LockFileManager(Protocol):
     def write_all_to_file(self, changes : Dict[str, Any]) -> Dict[str, Any]:
         ...
 
-class JsonLockFileManager(LockFileManager):
-    def __init__(self, file_path: pathlib.Path):
+class SimpleFileManager(LockFileManager):
+    def __init__(self, file_path: pathlib.Path, reader_writer : ReaderWriter):
         """
         This will initialize the LockFileManager and assigns two properties,
         file_path, file_lock
         """
         self.file_path = file_path
         self.file_lock = FileLock(self.file_path)
+        self.reader_writer = reader_writer
 
     def from_file(self) -> Dict[str, Any]:
         with self.file_lock.lock_shared() as f:
-            return self.load(f)
+            return self.reader_writer.load(f)
 
     def write_changes_to_file(self, changes: Dict[str, Any]) -> Dict[str, Any]:
-        file_contents = self.from_file()
-        merged_contents = recursive_merge(changes, file_contents)
-        with self.file_lock.lock() as f:
-            self.dump(f, merged_contents)
+        with self.file_lock.lock('a+') as f:
+            # Point to starting position for loading
+            f.seek(0)
+            file_contents = self.reader_writer.load(f)
+            merged_contents = recursive_merge(changes, file_contents)
+            # Truncate file
+            f.seek(0)
+            f.truncate(0)
+            self.reader_writer.dump(f, merged_contents)
         return merged_contents
 
     def write_all_to_file(self, content: Dict[str, Any]):
@@ -46,41 +69,15 @@ class JsonLockFileManager(LockFileManager):
         Write all of the contents to the file.
         """
         with self.file_lock.lock() as f:
-            self.dump(f, content)
-    
-    def load(self, f : IO):
-        return json.load(f)
-    def dump(self, f : IO, content : Any):
-        json.dump(content, f)
+            self.reader_writer.dump(f, content)
 
-class YamlLockFileManager(LockFileManager):
-    def __init__(self, file_path: pathlib.Path):
-        """
-        This will initialize the LockFileManager and assigns two properties,
-        file_path, file_lock
-        """
-        self.file_path = file_path
-        self.file_lock = FileLock(self.file_path)
-
-    def from_file(self) -> Dict[str, Any]:
-        with self.file_lock.lock_shared() as f:
-            return self.load(f)
-
-    def write_changes_to_file(self, changes: Dict[str, Any]) -> Dict[str, Any]:
-        file_contents = self.from_file()
-        merged_contents = recursive_merge(changes, file_contents)
-        with self.file_lock.lock() as f:
-            self.dump(f, merged_contents)
-        return merged_contents
-
-    def write_all_to_file(self, content: Dict[str, Any]):
-        """
-        Write all of the contents to the file.
-        """
-        with self.file_lock.lock() as f:
-            self.dump(f, content)
-    
-    def load(self, f : IO):
-        return yaml.safe_load(f)
-    def dump(self, f : IO, content : Any):
-        yaml.dump(content, f, default_flow_style = False)
+def JsonLockFileManager(file_path : pathlib.Path):
+    """
+        Returns a SimpleFileManager with a JSON Reader Writer
+    """
+    return SimpleFileManager(file_path, JsonReaderWriter())
+def YamlLockFileManager(file_path : pathlib.Path):
+    """
+        Returns a SimpleFileManager with a Yaml Reader writer
+    """
+    return SimpleFileManager(file_path, YamlReaderWriter())

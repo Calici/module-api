@@ -18,7 +18,7 @@ RUN CXX=clang++-18 cmake \
   -GNinja \
   -DPython3_EXECUTABLE=/usr/bin/python${PYTHON_VERSION} \
   -DPYBIND11_PYTHON_VERSION=${PYTHON_VERSION} \
-  -DCMAKE_BUILD_TYPE=Release .d
+  -DCMAKE_BUILD_TYPE=Release
 WORKDIR /app/file-lock/build
 
 # Build Python
