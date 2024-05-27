@@ -22,7 +22,7 @@ RUN CXX=clang++-18 cmake \
 WORKDIR /app/file-lock/build
 
 # Build Python
-RUN ninja multiprocessing_file_lock_python
+RUN ninja moderna_file_lock_python
 
 FROM python:${PYTHON_VERSION}-slim as test
 COPY ./setup.py /app/setup.py

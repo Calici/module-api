@@ -24,7 +24,7 @@ def get_args(
 
 subprocess_args = [
     get_args(platform, str(version))  # type: ignore
-    for version in range(7, 12)
+    for version in range(7, 13)
     for platform in ["linux/amd64", "linux/arm64"]
 ]
 
