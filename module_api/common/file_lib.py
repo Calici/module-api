@@ -26,6 +26,16 @@ def is_blank_str(my_string: str) -> bool:
     """
     return isinstance(my_string, str) and not (my_string and my_string.strip())
 
+def relative_symlink(symlink: Union[Path, str], target: Union[Path, str]):
+    """Create a symlink pointing to ``target`` from ``location``.
+    Args:
+        symlink: The location of the symlink itself.
+        destination: The target of the symlink (the file/directory that is pointed to)
+    """
+    symlink = Path(symlink)
+    target = Path(target)
+    symlink.symlink_to(os.path.relpath(target.resolve(), symlink.parent.resolve()))
+
 
 def is_list(l) -> bool:
     """Check l is list or not
