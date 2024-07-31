@@ -1,0 +1,97 @@
+#include <type_traits>
+module;
+#include <expected>
+#include <ranges>
+#include <rfl.hpp>
+#include <string>
+#include <vector>
+export module pharmaco.display:messages;
+
+namespace pharmaco::display {
+  /*
+    This represents the legacy way of representing message. 
+  */
+  using legacy_message = std::string;
+
+  /*
+    This represents the new way of representing messages with three types. 
+  */
+  struct message {
+    std::string msg;
+    rfl::Literal<"normal", "warning", "error">
+      type; // This can be used to determine the color of the messages ...
+
+    static struct message make(std::string_view msg, std::string_view msg_type = "normal") {
+      return message{.msg{msg}, .type{std::string{msg_type}}};
+    }
+    template <const char *msg_type>
+      requires(msg_type == "normal" || msg_type == "warning" || msg_type == "error")
+    static struct message make(std::string_view msg) {
+      return message{.msg{msg}, .type{msg_type}};
+    }
+  };
+
+  /*
+    A message array of messages. 
+  */
+  struct messages {
+
+    /*
+      Reflection implementation
+    */
+    using ReflectionType = std::vector<message>;
+
+    const ReflectionType &reflection() const {
+      return __messages;
+    }
+    messages(ReflectionType &&refl) : __messages{std::move(refl)} {}
+    messages(const ReflectionType &refl) : messages{ReflectionType{refl}} {}
+
+    template <const char *msg_t>
+      requires(msg_t == "normal" || msg_t == "warning" || msg_t == "error")
+    void log_message(std::string_view msg) {
+      __messages.emplace_back(message::make(msg, msg_t));
+    }
+
+    /*
+      Creates a messages object with a given container. 
+    */
+    template <std::ranges::range container_t>
+      requires(std::same_as<std::ranges::range_value_t<container_t>, message>)
+    static messages make(const container_t &container) {
+      return messages{std::vector<message>{container.begin(), container.end()}};
+    }
+
+    /*
+      Creates an empty messages object. 
+    */
+    static messages make() {
+      return messages{{}};
+    }
+
+    /*
+      Uses the legacy message and converts it into the current message system. 
+    */
+    static messages from_legacy(const std::vector<std::string> &legacy_messages) {
+      return messages::make(std::ranges::transform_view(legacy_messages, [](const auto &message) {
+        return message::make(message);
+      }));
+    }
+
+    /*
+      Does auto conversion wether it is the legacy version or the current version
+    */
+    static messages from_unknown(const std::variant<std::vector<std::string>, messages>& msgs){
+      return std::visit([](const auto& msg_var){
+        using var_t = std::remove_cvref_t<decltype(msg_var)>;
+        if constexpr (std::same_as<var_t, messages>)
+          return msg_var;
+        else
+          return from_legacy(msg_var);
+      }, msgs);
+    }
+  
+  private:
+    ReflectionType __messages;
+  };
+};

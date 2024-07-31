@@ -4,6 +4,3 @@
 [submodule "libs/reflect-cpp"]
 	path = libs/reflect-cpp
 	url = https://github.com/getml/reflect-cpp
-[submodule "libs/libs/file-lock"]
-	path = libs/libs/file-lock
-	url = github.com:jowillianto/file-lock

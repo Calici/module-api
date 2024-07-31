@@ -1,0 +1,181 @@
+module;
+#include <expected>
+#include <ranges>
+#include <rfl.hpp>
+#include <string>
+#include <variant>
+#include <vector>
+export module pharmaco.display:table;
+import :error;
+
+namespace pharmaco::display {
+  /*
+    version 0 table. Provided for compatibility
+  */
+  struct legacy_table_type {
+    std::optional<std::string> type;
+    std::optional<std::variant<bool, rfl::Literal<"none", "normal", "admet", "admet-ai">>> zoomable;
+    std::optional<bool> sortable;
+  };
+  struct legacy_table {
+    std::vector<std::string> headers;
+    std::vector<std::vector<std::string>> rows;
+    std::vector<legacy_table_type> types;
+  };
+
+  /*
+    version 1 table.
+  */
+  struct id_table_header {
+    rfl::Literal<"id"> type;
+    rfl::Literal<"none", "normal"> zoomable;
+  };
+  struct number_table_header {
+    rfl::Literal<"number"> type;
+    rfl::Literal<"none", "normal"> zoomable;
+    rfl::Rename<"fpAccuracy", std::optional<size_t>> fp_accuracy;
+  };
+  struct string_table_header {
+    rfl::Literal<"string"> type;
+    rfl::Literal<"admet", "admet-ai", "normal", "smiles", "none"> zoomable;
+    std::optional<size_t> fpAccuracy;
+  };
+  struct smiles_table_header {
+    rfl::Literal<"smiles"> type;
+    rfl::Literal<"smiles", "none"> zoomable;
+  };
+  struct table_header {
+    std::string displayName;
+    std::variant<id_table_header, number_table_header, string_table_header, smiles_table_header>
+      type;
+
+    struct ReflectionType {
+      std::string displayName;
+      rfl::TaggedUnion<
+        "type",
+        id_table_header,
+        number_table_header,
+        string_table_header,
+        smiles_table_header>
+        type;
+    };
+
+    ReflectionType reflection() const {
+      return ReflectionType{
+        .displayName{displayName},
+        .type{std::visit(
+          [](const auto &var_type) { return decltype(ReflectionType::type){var_type}; }, type
+        )}
+      };
+    }
+    table_header(ReflectionType &&reflection) :
+      displayName{std::move(reflection.displayName)},
+      type{rfl::visit(
+        [](auto &&var_type) { return decltype(type){std::move(var_type)}; },
+        reflection.type.variant()
+      )} {}
+    table_header(const ReflectionType &reflection) : table_header{ReflectionType{reflection}} {}
+
+    table_header(std::string &&displayName, decltype(type) &&type) :
+      displayName{std::move(displayName)}, type{std::move(type)} {}
+    table_header(const std::string &displayName, const decltype(type) &header_type) :
+      table_header{std::string{displayName}, decltype(type){header_type}} {}
+  };
+
+  struct zoomable_cell {
+    rfl::Rename<"shortText", std::string> short_text;
+    rfl::Rename<"zoomedText", std::string> zoomed_text;
+  };
+  using normal_cell = std::string;
+  using cell_t = std::variant<zoomable_cell, normal_cell>;
+
+  /*
+    the table. 
+  */
+  struct table {
+    std::vector<table_header> headers;
+    std::vector<std::vector<cell_t>> rows;
+
+    static std::expected<table, display_error> from_legacy(const legacy_table &legacy_table) {
+      if (legacy_table.rows.size() == 0)
+        return table{__adapt_headers(legacy_table.headers, legacy_table.types)};
+      else {
+        if (legacy_table.headers.size() < legacy_table.rows.at(0).size())
+          return std::unexpected{display_error{"header is smaller than row"}};
+        size_t header_row_length_difference =
+          legacy_table.headers.size() - legacy_table.rows.at(0).size();
+        auto headers = __adapt_headers(legacy_table.headers, legacy_table.types);
+        auto rows = __adapt_rows(headers, legacy_table.rows);
+        return table{std::move(headers), std::move(rows)};
+      }
+    }
+
+  private:
+    static decltype(rows) __adapt_rows(
+      const decltype(headers) &headers,
+      const decltype(legacy_table::rows) &rows,
+      size_t header_row_length_difference = 0
+    ) {
+      decltype(table::rows) adapted_rows;
+      adapted_rows.reserve(rows.size());
+      for (size_t i = 0; i < rows.size(); i += 1) {
+        decltype(table::rows)::value_type cells;
+        for (size_t j = 0; j < headers.size(); j += 1) {
+          if (j < header_row_length_difference) cells.emplace_back(normal_cell{""});
+          else
+            cells.emplace_back(std::visit(
+              [&](const auto &header_type) {
+                if (header_type.zoomable.name() != "none")
+                  return cell_t{zoomable_cell{
+                    .short_text{rows[i][j - header_row_length_difference]},
+                    .zoomed_text{rows[i][j - header_row_length_difference]}
+                  }};
+                else
+                  return cell_t{normal_cell{rows[i][j - header_row_length_difference]}};
+              },
+              headers[j].type
+            ));
+        }
+      }
+      return adapted_rows;
+    }
+    static decltype(headers) __adapt_headers(
+      const decltype(legacy_table::headers) &headers,
+      const decltype(legacy_table::types) &types,
+      size_t header_row_length_difference = 0
+    ) {
+      std::vector<table_header> adapted_headers;
+      adapted_headers.reserve(headers.size());
+      for (size_t i = 0; i < headers.size(); i += 1) {
+        const auto &table_type = types[i];
+        if (i < header_row_length_difference)
+          adapted_headers.emplace_back(
+            table_header{headers[i], id_table_header{.type{"id"}, .zoomable{"none"}}}
+          );
+        else if (!table_type.zoomable)
+          adapted_headers.emplace_back(
+            table_header{headers[i], string_table_header{.type{"string"}, .zoomable{"none"}}}
+          );
+        else
+          adapted_headers.emplace_back(table_header{
+            headers[i],
+            std::visit(
+              [](const auto &zoomable_type) {
+                using type_t = std::remove_cvref_t<decltype(zoomable_type)>;
+                if constexpr (std::same_as<type_t, bool>)
+                  return string_table_header{
+                    .type{"string"}, .zoomable{zoomable_type ? "smiles" : "none"}
+                  };
+                else if (zoomable_type.name() == "normal")
+                  return string_table_header{.type{"string"}, .zoomable{"smiles"}};
+                else
+                  return string_table_header{.type{"string"}, .zoomable{zoomable_type.name()}};
+              },
+              *table_type.zoomable
+            )
+          });
+      }
+      return adapted_headers;
+    }
+  };
+}
