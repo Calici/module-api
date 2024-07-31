@@ -1,9 +1,8 @@
-build
-dist
+**build
+**dist
 module_api.egg-info
 .editorconfig
 .gitignore
 dockerfile
 LICENSE
 README.md
-setup.py

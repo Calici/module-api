@@ -1,17 +1,16 @@
- # Library Imports
+# Library Imports
 from datetime import datetime
 from pathlib import Path
 
 # Local Imports
 from .file import LockIO
+from .lock_file_manager import LockFileManager, YamlLockFileManager
 from .field import LockField
 from .list import ListField
 from .section import LockSection
 from module_api.common.other_lib import get_current_time
-from .utils import recursive_merge
 from .type import SpreadKwargs
-from typing_extensions import Dict, Any
-
+from typing_extensions import Dict, Any, Union
 # Conditions of the running process
 class LockIOStatusType:
     STOP                = 'STOP'
@@ -61,6 +60,40 @@ class LockHeader(LockSection):
     pid         = LockField(int, default = -1)
     gpu_blocks  = ListField(SpreadKwargs(GPUStatus), [])
 
+class CaliciLockFileManager(LockFileManager):
+    """
+        Specializes to write params.yml into a new file instead of accumulating it in the lock file.
+    """
+    def __init__(self, file_path: Path):
+        self.file_path = file_path
+        self.main_file_manager = YamlLockFileManager(file_path)
+        self.params_file_manager = YamlLockFileManager(file_path.parent / 'params.yml')
+
+    def from_file(self) -> Dict[str, Any]:
+        all_but_params = self.main_file_manager.from_file()
+        all_but_params.update({
+            'params' : self.params_file_manager.from_file()
+        })
+        return all_but_params
+    
+    def write_changes_to_file(self, changes: Dict[str, Any]) -> Dict[str, Any]:
+        params_changes = changes.pop('params', None)
+        if params_changes is not None:
+            merged_params = {
+                'params' : self.params_file_manager.write_changes_to_file(params_changes)
+            }
+        else:
+            merged_params = {}
+        # At this point, it had been removed before.
+        merged_params.update(self.main_file_manager.write_changes_to_file(changes))
+        return merged_params
+
+    def write_all_to_file(self, content: Dict[str, Any]):
+        params = content.pop('params', None)
+        if params is not None:
+            self.params_file_manager.write_all_to_file(params)
+        self.main_file_manager.write_all_to_file(content)
+
 class CaliciLock(LockIO):
     header      = LockHeader()
     status      = LockStatus()
@@ -71,23 +104,16 @@ class CaliciLock(LockIO):
     __reserved_file_path__  = '.reserved'
     DISPLAY_CHANGES_FILE    = 'changes.json'
     DISPLAY_MAIN_FILE       = 'main.json'
-    def __init__(self, file_path : Path, **kwargs):
-        super().__init__(file_path, **kwargs)
-
-        # Process Params
-        if self.params_path().exists():
-            params = self.load_params()
-            self.params.set_value(params, False)
-        elif not self.params_path().exists() and "params" in kwargs:
-            self.params.set_value(kwargs['params'], False)
-            self.save_params(self.params.serialize())
-        else:
-            self.save_params({})
+    def __init__(self, file_path : Union[Path, str], **kwargs):
+        if isinstance(file_path, str):
+            file_path = Path(file_path)
+        super().__init__(file_path, file_manager = CaliciLockFileManager(file_path), **kwargs)
+    
     # Get display file path
     def display_path(self) -> Path:
         return self.file_path.parent / self.__display_file_path__
     def params_path(self) -> Path:
-        return self.file_path.parent / 'params.json'
+        return self.file_path.parent / 'params.yml'
     # Get error file path
     def error_path(self) -> Path:
         return self.file_path.parent /self.__error_file_path__
@@ -107,32 +133,6 @@ class CaliciLock(LockIO):
     def __init_display__(self):
         path            = self.display_path()
         path.mkdir(0o777, True, True)
-
-    # Modify 
-    def _save_file(self):
-        # Build dictionary
-        build_dict  = self.serialize_changes()
-        params = build_dict.pop('params', None)
-        if params: self.save_params(self.params.serialize())
-        # Block update if empty
-        if build_dict == {}: return 
-        conf        = self._file_values(self.file_path)
-        conf        = recursive_merge(build_dict, conf)
-        self._thread_lock.acquire()
-        with open(self.file_path, 'w') as f:
-            self.dumper(f, conf)
-        self._thread_lock.release()
-        # Set the values from the file
-        self.set_value(conf, False)
-        self.flush()
-
-    def save_params(self, params : Any):
-        with open(self.params_path(), 'w') as f:
-            self.dumper(f, params)
-    def load_params(self) -> Dict[str, Any]:
-        with open(self.params_path(), 'r') as f:
-            return self.loader(f)
-
     # Status control
     def pause(self): 
         self.change_status(LockIOStatusType.STOP)

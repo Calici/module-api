@@ -1,23 +1,17 @@
-from .module import \
-  ModuleAPI, \
-  ModuleResult, \
-  ModuleSection, \
-  ModuleStatus
-from .notification import \
-  NotificationAPI, \
-  NotificationStatus
-from .token import \
-  TokenAPI
-from .ligand import \
-  LigandLibraryAPI
+from .module import ModuleAPI, ModuleResult, ModuleSection, ModuleStatus
+from .notification import NotificationAPI, NotificationStatus
+from .token import TokenAPI
+from .ligand import LigandLibraryAPI
+from .user import UserAPI
 
 __all__ = [
-  'NotificationAPI', 
-  'NotificationStatus',
-  'TokenAPI', 
-  'ModuleAPI', 
-  'ModuleResult', 
-  'ModuleSection', 
-  'ModuleStatus', 
-  'LigandLibraryAPI'
+    "NotificationAPI",
+    "NotificationStatus",
+    "TokenAPI",
+    "ModuleAPI",
+    "ModuleResult",
+    "ModuleSection",
+    "ModuleStatus",
+    "LigandLibraryAPI",
+    "UserAPI"
 ]

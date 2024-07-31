@@ -5,10 +5,12 @@ from .field import  LockField
 from .list import ListField
 from .section import LockSection
 from .file import LockIO
-from .calici import LockHeader, LockStatus
+from .calici import LockHeader, LockStatus, CaliciLock
 from .type import TypeField, SpreadKwargs
 from .tuple import TupleField
-
+from typing_extensions import List
+from module_api.API.test import DirectoryGenerator
+import yaml
 class TestField(unittest.TestCase):
     def test_initialize(self):
         field   = LockField(float, 0.0)
@@ -280,7 +282,7 @@ class TestListField(unittest.TestCase):
     def test_list_in_list(self):
         field = ListField(
             TypeField(ListField, TypeField(LockField, str)), #type: ignore
-            [["a", "b", "c"], ["d", "e", "f"], ["g", "h", "i"]]
+            [["a", "b", "c"], ["d", "e", "f"], ["g", "h", "i"]] #type: ignore
         )
         entries = field.get()
         self.assertTrue(isinstance(entries[0], ListField))
@@ -289,12 +291,12 @@ class TestListField(unittest.TestCase):
     def test_list_in_list_append(self):
         field = ListField(
             TypeField(ListField, TypeField(LockField, str)), #type: ignore
-            [["a", "b", "c"], ["d", "e", "f"], ["g", "h", "i"]]
+            [["a", "b", "c"], ["d", "e", "f"], ["g", "h", "i"]] #type: ignore
         )
-        field.append(["a", "b", "c"])
+        field.append(["a", "b", "c"]) #type: ignore
         entries = field.get()
         last_field = entries.pop()
-        self.assertEqual(last_field.serialize(), ["a", "b", "c"])
+        self.assertEqual(last_field.serialize(), ["a", "b", "c"]) #type: ignore
 
     def test_list_with_object(self):
         class SomeObject(LockSection):
@@ -333,3 +335,55 @@ class TestTupleField(unittest.TestCase):
             field.serialize(), ["Hello", "World", "Light"]
         )
     
+class CaliciLockTest(unittest.TestCase):
+    def test_write_more_fields_than_allowed(self):
+        with DirectoryGenerator(pathlib.Path('./tmp')) as d:
+            fpath = d / 'haha.lock'
+            with open(fpath, 'w') as f:
+                yaml.dump({'status' : {'lol' : 'lol'}}, f)
+            with open(fpath.parent / 'params.yml', 'w') as f:
+                yaml.dump({}, f)
+            CaliciLock(fpath)
+    def test_init_params(self):
+        with DirectoryGenerator(pathlib.Path('./tmp')) as d:
+            lock = CaliciLock(d / 'haha.lock', params = {'a' : 2})
+            content = lock.file_manager.from_file()
+            params = content.pop('params')
+            self.assertEqual(params['a'], 2)
+    
+    def test_check_params_not_in_main(self):
+        with DirectoryGenerator(pathlib.Path('./tmp')) as d:
+            lock = CaliciLock(d / 'haha.lock', params = {'a' : 2})
+            with open(lock.file_path, 'r') as f:
+                self.assertTrue('params' not in yaml.safe_load(f))
+            lock.set(params = {'a' : 3})
+            with open(lock.file_path, 'r') as f:
+                self.assertTrue('params' not in yaml.safe_load(f))
+
+    def test_init_and_set_params(self):
+        with DirectoryGenerator(pathlib.Path('./tmp')) as d:
+            lock = CaliciLock(d / 'haha.lock', params = {'a' : 2})
+            content = lock.file_manager.from_file()
+            self.assertEqual(content['params']['a'], 2)
+            lock.set(params = {'a' : 3})
+            content = lock.file_manager.from_file()
+            self.assertEqual(content['params']['a'], 3)
+        
+    def test_check_value_eq(self):
+        with DirectoryGenerator(pathlib.Path('./tmp')) as d:
+            lock = CaliciLock(d / 'haha.lock', params = {'a' : 2})
+            content = lock.file_manager.from_file()
+            from_lock = lock.serialize()
+            params = content.pop('params')
+            lock_params = from_lock.pop('params')
+            self.assertDictEqual(from_lock, content)
+            self.assertDictEqual(params, lock_params)
+    
+    def test_init_normal_field(self):
+        with DirectoryGenerator(pathlib.Path('./tmp')) as d:
+            lock = CaliciLock(d / 'haha.lock', header = {'workdir' : d})
+            content = lock.file_manager.from_file()
+            self.assertEqual(content['header']['workdir'], str(d))
+            lock.set(header = {'workdir' : d / 'lol'})
+            content = lock.file_manager.from_file()
+            self.assertEqual(content['header']['workdir'], str(d / 'lol'))

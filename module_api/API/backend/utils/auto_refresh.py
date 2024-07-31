@@ -20,7 +20,7 @@ class RequestAutoRefresh(lock.LockSection):
         """
         try:
             data = self.__get_data().json()
-            self.set_value(data, False)
+            self.set_value(data, False, True)
             return True
         except Exception as e:
             logging.error(str(e))

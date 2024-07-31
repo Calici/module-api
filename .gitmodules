@@ -1,0 +1,6 @@
+[submodule "libs/file-lock"]
+	path = libs/file-lock
+	url = github.com:jowillianto/file-lock
+[submodule "libs/reflect-cpp"]
+	path = libs/reflect-cpp
+	url = https://github.com/getml/reflect-cpp

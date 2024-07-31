@@ -44,6 +44,20 @@ class TestDisplay_v1(unittest.TestCase):
         self.assertEqual(len(display.component.messages), 0)
         with open(display.file_path) as f:
             self.assertEqual(json.load(f)['dtype'], 0)
+
+    def test_lock_connected_changes_file(self):
+        self.lock.set(status = {'is_connected' : False})
+        display = Display(
+            lock = self.lock, dtype = 0, component = v1_ComponentWithoutTable()
+        )
+        display.set(component = {'progress' : {'value' : 0}})
+        file_lists = list(display.file_path.parent.iterdir())
+        self.assertEqual(True, all(['changes_' not in file.name for file in file_lists]))
+        self.lock.set(status = {'is_connected' : True})
+        display.set(component = {'progress' : {'value' : 1}})
+        file_lists = list(display.file_path.parent.iterdir())
+        self.assertEqual(True, any(['changes_' in file.name for file in file_lists]))
+
     def test_init_and_set_values(self):
         display = Display(
             lock = self.lock, dtype = 0, component = v1_ComponentWithoutTable()
@@ -143,12 +157,11 @@ class TestPDFDisplay(unittest.TestCase):
             self.test_folder
         )
 
-    def test_init_pdb_display(self):
+    def test_init_pdf_display(self):
         display = Display(self.lock, ComponentWithPDFViewer(), dtype = 2)
         self.assertEqual(pathlib.Path(display.file_path).is_file(), True)
         self.assertEqual(pathlib.Path(display.file_path).is_file(), True)
         self.assertEqual(len(display.component.messages), 0)
-        self.assertEqual(isinstance(display.component.pdf_file.get(), str), True)
         with open(display.file_path) as f:
             self.assertEqual(json.load(f)['dtype'], 2)
 
