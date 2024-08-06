@@ -1,6 +1,9 @@
 [submodule "libs/file-lock"]
 	path = libs/file-lock
 	url = github.com:jowillianto/file-lock
-[submodule "libs/reflect-cpp"]
-	path = libs/reflect-cpp
-	url = https://github.com/getml/reflect-cpp
+[submodule "libs/test_lib"]
+	path = libs/test_lib
+	url = https://github.com/jowillianto/test-lib
+[submodule "libs/io"]
+	path = libs/io
+	url = https://github.com/jowillianto/moderna_io

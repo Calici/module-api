@@ -1,8 +1,0 @@
-export module pharmaco.display;
-import :messages;
-import :error;
-import :table;
-
-namespace pharmaco::display {
-  
-}

@@ -1,5 +1,0 @@
-export module pharmaco.display:smart_boxes;
-
-namespace pharmaco::display {
-  
-}
