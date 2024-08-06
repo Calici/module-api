@@ -7,3 +7,6 @@
 [submodule "libs/io"]
 	path = libs/io
 	url = https://github.com/jowillianto/moderna_io
+[submodule "libs/pharmaco-display"]
+	path = libs/pharmaco-display
+	url = github.com:calici/pharmaco-display
