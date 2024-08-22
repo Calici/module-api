@@ -1,5 +1,6 @@
 # Library Imports
 import module_api.API.lock as lock
+from module_api.common.file_lib import PathEx
 import pathlib
 
 from .utils import get_backend_endpoint, get_jwt, RequestAutoRefresh
@@ -22,7 +23,7 @@ class ModuleStatus:
     STOP    = 'STOP'
     ERROR   = 'ERROR'
     Type = Union[
-        Literal['INIT'], Literal['LOADING'], Literal['COMPLETE'], 
+        Literal['INIT'], Literal['LOADING'], Literal['COMPLETE'],
         Literal['STOP'], Literal['ERROR']
     ]
 
@@ -30,9 +31,9 @@ class ModuleResult(lock.LockSection):
     def serialize_changes(self) -> dict:
         # Force Serialization:
         return self.serialize()
-    def convert_to_shared(self, 
-        work_dir : pathlib.Path, 
-        share_dir : pathlib.Path                      
+    def convert_to_shared(self,
+        work_dir : pathlib.Path,
+        share_dir : pathlib.Path
     ):
         new_contents = {}
         for field_name, field in self.items():
@@ -41,13 +42,13 @@ class ModuleResult(lock.LockSection):
                 new_contents[field_name] = \
                     share_dir / value.relative_to(work_dir)
         self.set_value(new_contents)
-    def convert_to_work(self, 
-        work_dir : pathlib.Path, 
+    def convert_to_work(self,
+        work_dir : pathlib.Path,
         share_dir : pathlib.Path
     ):
         self.convert_to_shared(share_dir, work_dir)
-    def create_symlnk(self, 
-        work_dir : pathlib.Path, share_dir : pathlib.Path                
+    def create_symlnk(self,
+        work_dir : pathlib.Path, share_dir : pathlib.Path
     ):
         for field in self.values():
             path = field.get()
@@ -60,7 +61,7 @@ class ModuleResult(lock.LockSection):
                     share_path = share_dir / path.relative_to(work_dir)
                     work_path = path
                     self.__create_symlnk_ignore_errors(work_path, share_path)
-                    
+
     def __create_symlnk_ignore_errors(
         self, src : pathlib.Path, target : pathlib.Path
     ):
@@ -69,10 +70,11 @@ class ModuleResult(lock.LockSection):
         if target.is_symlink(): target.unlink()
         elif target.is_file(): target.unlink()
         elif target.is_dir(): shutil.rmtree(target)
-        target.symlink_to(src)
-            
-    
-    
+        # target.symlink_to(src)
+        PathEx(target).symlink_rel_to(src)
+
+
+
 
 class ModuleSection(RequestAutoRefresh):
     status = lock.LockField[ModuleStatus.Type](str, ModuleStatus.INIT)
@@ -86,11 +88,11 @@ class ModuleSection(RequestAutoRefresh):
 Section = TypeVar('Section', bound = lock.LockSection)
 class ModuleAPI(Generic[Section]):
     def __init__(self,
-      module_id : int, 
+      module_id : int,
       Sect : Callable[[str, Dict], Section] = ModuleSection
     ):
         self.module = Sect(
-            self.create_url_endpoint(module_id), 
+            self.create_url_endpoint(module_id),
             self.create_header()
         )
 

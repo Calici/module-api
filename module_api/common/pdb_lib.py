@@ -1,7 +1,7 @@
 
 import pathlib
 from typing_extensions import Union, List
-from .file_lib import load_file_to_list_str
+from .file_lib import PathEx
 
 
 LIST_ELEMENT_ION = ['AG', 'AL', 'BE', 'CA', 'CD', 'CL', 'CO', 'CR', 'CU', 'FE', 'GA', 'HE', 'IN ', 'LI', 'MG', 'MN',
@@ -145,7 +145,7 @@ class PdbRecord(object):
 
 
 def load_pdb_file(file_path: Union[pathlib.Path, str]) -> List[PdbRecord]:
-    data = load_file_to_list_str(file_path)
+    data = PathEx(file_path).load_file_to_list_str()
     ret = []
     for _ in data:
         try:
