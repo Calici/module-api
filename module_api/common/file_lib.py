@@ -84,7 +84,7 @@ class UniversalEncoder(json.JSONEncoder):
             return o.dict()
 
         if "file_lib.PathEx" in (o.__class__.__module__ + "." + o.__class__.__name__):
-            return o.dict()
+            return {'path': str(self)}
 
         try:
             return super().default(o)
@@ -103,30 +103,6 @@ class PathEx(Path):
     def __new__(cls, *args, **kwargs):
         self = super().__new__(cls, *args, **kwargs)
         return self
-
-    def dict(self):
-        """json of this object
-
-        Returns:
-            dict:
-        """
-        return {'path': str(self), 'name': self.name}
-
-    def glob(self, pattern):
-        if not pattern:
-            raise ValueError(f"Unacceptable pattern: {pattern:!r}")
-        drv, root, pattern_parts = self._flavour.parse_parts((pattern, ))
-        if drv or root:
-            raise NotImplementedError("Non-relative patterns are unsupported")
-        selector = _make_selector(tuple(pattern_parts), self._flavour)
-        for p in selector.select_from(self):
-            yield PathEx(p)
-
-    def __rtruediv__(self, key: str | os.PathLike[str]):
-        return PathEx(super().__rtruediv__(key))
-
-    def __truediv__(self, key: str | os.PathLike[str]):
-        return PathEx(super().__truediv__(key))
 
     def check_existed(self, b_existed: bool = True):
         """Check item exists or not
@@ -357,34 +333,6 @@ class PathEx(Path):
                 ret += _.count_child_files(file_type=file_type, b_recursive=False)
         return ret
 
-    def new_filename(self, sep: str = '-', leading_zero: int = 4):
-        """Recreate new file name if it exists
-
-        Args:
-            sep (str, optional): _description_. Defaults to '-'.
-            leading_zero (int, optional): _description_. Defaults to 4.
-
-        Returns:
-            str: generate new file name if file_name exists
-        """
-        def add_zero(num: int, leading_zero: int = 0) -> str:
-            s = f"{num}"
-            while len(s) < leading_zero:
-                s = '0' + s
-            return s
-
-        if not self.exists():
-            return self
-
-        name = self.stem
-        n = 1
-        new_file_path = self.with_name(f"{name}{sep}{add_zero(n, leading_zero)}").with_suffix(self.suffix)
-        while new_file_path.exists():
-            n += 1
-            new_file_path = self.with_name(f"{name}{sep}{add_zero(n, leading_zero)}").with_suffix(self.suffix)
-
-        return PathEx(new_file_path)
-
     def move_children_to(self, dest_folder: Union[Path, str]):
         """Move all children to dest_folder
 
@@ -421,54 +369,6 @@ class PathEx(Path):
         finally:
             fin.close()
 
-        return ret
-
-    def process_files_in_folder(self, *args, func=None, pattern: str = '*', level: int = 0):
-        """Excuse func with all files in self
-
-        Args:
-            func : Must be func_name(file_path, *args)
-        """
-        self.check_folder()
-        if not func:
-            raise ValueError("Invalid parameter 'func'")
-
-        files = self.list_files(pattern, level)
-
-        for _ in files:
-            func(_, *args)
-
-    def remove_empty_sub_folders(self, b_add_self: bool = False):
-        """Remove empty folder
-
-        Args:
-            b_add_self (bool, optional): Default to False, if True current folder will be remove
-                if it is empty
-        """
-        sub_folders = self.find_empty_sub_folders(b_add_self)
-        while sub_folders:
-            for _ in sub_folders:
-                _.rmdir()
-            sub_folders = self.find_empty_sub_folders(b_add_self)
-
-    def find_empty_sub_folders(self, b_add_self: bool = False):
-        """Find empty folder
-
-        Args:
-            b_add_self (bool, optional): Default to False,  if True current folder will be add
-                to return list if it is empty
-
-        Return:
-            list: list of empty folder
-        """
-        ret: List[PathEx] = []
-        folders = self.list_sub_folders('*', level=-1)
-        if b_add_self and self.is_empty_folder():
-            ret.append(self)
-
-        for folder in folders:
-            if folder.is_empty_folder():
-                ret.append(folder)
         return ret
 
     def list_sub_folders(
