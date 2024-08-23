@@ -84,7 +84,7 @@ class UniversalEncoder(json.JSONEncoder):
             return o.dict()
 
         if "file_lib.PathEx" in (o.__class__.__module__ + "." + o.__class__.__name__):
-            return {'path': str(self)}
+            return {'path': str(o)}
 
         try:
             return super().default(o)
