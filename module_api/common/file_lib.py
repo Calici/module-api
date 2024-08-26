@@ -152,6 +152,8 @@ class PathEx(Path):
 
         Raises:
             NotADirectoryError: not a folder
+            FileNotFoundError
+            FileExistsError
         """
         self.check_existed()
         if not self.is_dir():
@@ -162,6 +164,8 @@ class PathEx(Path):
 
         Raises:
             NotADirectoryError: not a folder
+            FileNotFoundError
+            FileExistsError
         """
         self.check_folder()
         data = self.glob('*')
@@ -176,7 +180,8 @@ class PathEx(Path):
         """Check self is file or not
 
         Raises:
-            FileNotFoundError: not a file
+            FileNotFoundError: not a file or if the file does not exist
+            FileExistsError
         """
         self.check_existed()
         if not self.is_file():
