@@ -229,7 +229,7 @@ class PathEx(Path):
         target = PathEx(target).resolve()
         self.symlink_to(os.path.relpath(target, self.parent.resolve()), target_is_directory=target.is_dir())
 
-    def size(self, unit: str = 'bytes') -> float | int:
+    def size(self, unit: str = 'bytes') -> Union[float, int]:
         """Get folder size in unit
 
         Args:
