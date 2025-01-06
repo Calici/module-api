@@ -84,7 +84,7 @@ class UniversalEncoder(json.JSONEncoder):
             return o.dict()
 
         if "file_lib.PathEx" in (o.__class__.__module__ + "." + o.__class__.__name__):
-            return o.dict()
+            return {'path' : str(o)}
 
         try:
             return super().default(o)
@@ -103,30 +103,6 @@ class PathEx(Path):
     def __new__(cls, *args, **kwargs):
         self = super().__new__(cls, *args, **kwargs)
         return self
-
-    def dict(self):
-        """json of this object
-
-        Returns:
-            dict:
-        """
-        return {'path': str(self), 'name': self.name}
-
-    def glob(self, pattern):
-        if not pattern:
-            raise ValueError(f"Unacceptable pattern: {pattern:!r}")
-        drv, root, pattern_parts = self._flavour.parse_parts((pattern, ))
-        if drv or root:
-            raise NotImplementedError("Non-relative patterns are unsupported")
-        selector = _make_selector(tuple(pattern_parts), self._flavour)
-        for p in selector.select_from(self):
-            yield PathEx(p)
-
-    def __rtruediv__(self, key: str | os.PathLike[str]):
-        return PathEx(super().__rtruediv__(key))
-
-    def __truediv__(self, key: str | os.PathLike[str]):
-        return PathEx(super().__truediv__(key))
 
     def check_existed(self, b_existed: bool = True):
         """Check item exists or not
