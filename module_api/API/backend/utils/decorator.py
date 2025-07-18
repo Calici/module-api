@@ -12,6 +12,8 @@ from typing_extensions import \
     Callable, \
     ParamSpec
 import time
+import logging
+import os
 
 P = ParamSpec('P')
 def run_query(
@@ -21,7 +23,16 @@ def run_query(
         Perform the query func with the given parameters *args, **kwargs
     """
     try:
+        is_show_log = os.environ.get('PYTHON_SHOW_LOG', 'FALSE').upper()=='TRUE'
         response = func(*args, **kwargs)
+        if is_show_log:
+            try:
+                if response.status_code == 200:
+                    logging.warning(f"API Backend Respone: {response.text}")
+                else:
+                    logging.error(f"Error API Backend Respone: {response.text}")
+            except Exception:
+                pass
         if response.status_code == 200:
             return response
         elif response.status_code == 502:
@@ -33,13 +44,13 @@ def run_query(
         raise RetryError("Connection error or timeout occurred")
 
 def backend_api_call(
-    retry_count : int = 5, 
+    retry_count : int = 5,
     retry_interval : float = WAITING_FOR_ERROR_API_SENDING
 ) -> Callable[
     [Callable[P, requests.Response]], Callable[P, requests.Response]
 ]:
     """
-        Usage : 
+        Usage :
         @backend_api_call(retry_count = 5, retry_interval = ...)
         def api_call_function( ... ) -> requests.Response
             ...
