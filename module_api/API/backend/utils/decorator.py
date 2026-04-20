@@ -13,7 +13,6 @@ from typing_extensions import \
     ParamSpec
 import time
 import logging
-import os
 
 P = ParamSpec('P')
 def run_query(
@@ -23,16 +22,14 @@ def run_query(
         Perform the query func with the given parameters *args, **kwargs
     """
     try:
-        is_show_log = os.environ.get('PYTHON_SHOW_LOG', 'FALSE').upper()=='TRUE'
         response = func(*args, **kwargs)
-        if is_show_log:
+        # Show API error on Flask
+        if response.status_code != 200:
             try:
-                if response.status_code == 200:
-                    logging.warning(f"API Backend Respone: {response.text}")
-                else:
-                    logging.error(f"Error API Backend Respone: {response.text}")
-            except Exception:
+                logging.exception(f"Respone data : {response.text}")
+            except:
                 pass
+
         if response.status_code == 200:
             return response
         elif response.status_code == 502:
